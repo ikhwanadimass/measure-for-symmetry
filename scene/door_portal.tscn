@@ -1,13 +1,58 @@
 [gd_scene format=3 uid="uid://c6xk35a0m7j4a"]
 
 [ext_resource type="Script" uid="uid://dew78w35so8x1" path="res://script/door_portal.gd" id="1_door"]
+[ext_resource type="Texture2D" uid="uid://djd7nujp0nmvv" path="res://asset/tileseet/CartoonRooms/tileset_v1.png" id="2_tileset"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_door_brown"]
+atlas = ExtResource("2_tileset")
+region = Rect2(2, 93, 14, 25)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
 size = Vector2(40, 70)
 
+[sub_resource type="SystemFont" id="SystemFont_prompt"]
+font_names = PackedStringArray("Segoe UI", "Sans-Serif")
+multichannel_signed_distance_field = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompt_bg"]
+content_margin_left = 4.0
+content_margin_top = 1.0
+content_margin_right = 4.0
+content_margin_bottom = 1.0
+bg_color = Color(0.06, 0.08, 0.12, 0.85)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
 [node name="DoorPortal" type="Area2D" unique_id=1304386953]
 script = ExtResource("1_door")
+
+[node name="DoorSpriteLeft" type="Sprite2D" parent="." unique_id=1449201101]
+position = Vector2(-12, -16)
+scale = Vector2(1.3, 1.3)
+texture = SubResource("AtlasTexture_door_brown")
+
+[node name="DoorSpriteRight" type="Sprite2D" parent="." unique_id=1449201102]
+position = Vector2(12, -16)
+scale = Vector2(1.3, 1.3)
+texture = SubResource("AtlasTexture_door_brown")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1547745442]
 position = Vector2(0, -35)
 shape = SubResource("RectangleShape2D_door")
+
+[node name="PromptLabel" type="Label" parent="." unique_id=1449201103]
+visible = false
+z_index = 15
+offset_left = -58.0
+offset_top = -50.0
+offset_right = 58.0
+offset_bottom = -36.0
+theme_override_colors/font_color = Color(1, 0.96, 0.75, 1)
+theme_override_fonts/font = SubResource("SystemFont_prompt")
+theme_override_font_sizes/font_size = 6
+theme_override_styles/normal = SubResource("StyleBoxFlat_prompt_bg")
+text = "[E] Ruang 2 (Sisa: 3)"
+horizontal_alignment = 1
+vertical_alignment = 1

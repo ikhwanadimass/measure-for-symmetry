@@ -1,0 +1,565 @@
+[gd_scene format=3 uid="uid://d3m8k2p4r9q1x"]
+
+[ext_resource type="Script" path="res://script/hud.gd" id="1_hud"]
+[ext_resource type="Texture2D" path="res://asset/UI/Sprites/0 - UI Base/2.png" id="2_phone_bezel"]
+[ext_resource type="Texture2D" path="res://asset/UI/Sprites/1 - Holders/1.png" id="3_white_btn"]
+[ext_resource type="Texture2D" path="res://asset/UI/Sprites/1 - Holders/4.png" id="4_status_bar"]
+[ext_resource type="Texture2D" path="res://asset/UI/Sprites/2 - Buttons/27.png" id="5_btn_norm"]
+[ext_resource type="Texture2D" path="res://asset/UI/Sprites/2 - Buttons/28.png" id="6_btn_hover"]
+[ext_resource type="Texture2D" path="res://asset/UI/Sprites/4 - Items/7.png" id="7_icon_nota"]
+[ext_resource type="Texture2D" path="res://asset/UI/Sprites/5 - Icons/10.png" id="8_client_portrait"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bar"]
+texture = ExtResource("4_status_bar")
+texture_margin_left = 14.0
+texture_margin_top = 8.0
+texture_margin_right = 14.0
+texture_margin_bottom = 8.0
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ui_btn"]
+texture = ExtResource("5_btn_norm")
+texture_margin_left = 10.0
+texture_margin_top = 6.0
+texture_margin_right = 10.0
+texture_margin_bottom = 6.0
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ui_btn_hover"]
+texture = ExtResource("6_btn_hover")
+texture_margin_left = 10.0
+texture_margin_top = 6.0
+texture_margin_right = 10.0
+texture_margin_bottom = 6.0
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_phone_bezel"]
+texture = ExtResource("2_phone_bezel")
+texture_margin_left = 12.0
+texture_margin_top = 14.0
+texture_margin_right = 12.0
+texture_margin_bottom = 14.0
+content_margin_left = 10.0
+content_margin_top = 14.0
+content_margin_right = 10.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_phone_screen"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.96, 0.97, 0.98, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_phone_btn"]
+texture = ExtResource("3_white_btn")
+texture_margin_left = 8.0
+texture_margin_top = 8.0
+texture_margin_right = 8.0
+texture_margin_bottom = 8.0
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_phone_btn_hover"]
+content_margin_left = 10.0
+content_margin_top = 7.0
+content_margin_right = 10.0
+content_margin_bottom = 7.0
+bg_color = Color(0.86, 0.92, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18, 0.38, 0.7, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nota_header"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+bg_color = Color(0.94, 0.78, 0.6, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_face_badge"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.95, 0.8, 0.25, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.15, 0.15, 0.15, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill_hint"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.06, 0.09, 0.14, 0.86)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.72, 0.9, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill_toast"]
+content_margin_left = 12.0
+content_margin_top = 4.0
+content_margin_right = 12.0
+content_margin_bottom = 4.0
+bg_color = Color(0.14, 0.1, 0.04, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.95, 0.78, 0.35, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="RootControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopBar" type="MarginContainer" parent="RootControl"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 52.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+
+[node name="HBox" type="HBoxContainer" parent="RootControl/TopBar"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="StatusPanel" type="PanelContainer" parent="RootControl/TopBar/HBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_bar")
+
+[node name="StatusRow" type="HBoxContainer" parent="RootControl/TopBar/HBox/StatusPanel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="RoomLabel" type="Label" parent="RootControl/TopBar/HBox/StatusPanel/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.98, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "Ruang 1 (Kerja)"
+
+[node name="QuotaLabel" type="Label" parent="RootControl/TopBar/HBox/StatusPanel/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "Kuota: 3/3"
+
+[node name="TimerLabel" type="Label" parent="RootControl/TopBar/HBox/StatusPanel/StatusRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.45, 1)
+theme_override_font_sizes/font_size = 15
+text = "Waktu: 25.0s"
+
+[node name="Spacer" type="Control" parent="RootControl/TopBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Toolbar" type="HBoxContainer" parent="RootControl/TopBar/HBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="RulerButton" type="Button" parent="RootControl/TopBar/HBox/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.55, 0.95, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ui_btn_hover")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+toggle_mode = true
+text = "Ruler [F]"
+
+[node name="NotesButton" type="Button" parent="RootControl/TopBar/HBox/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "Nota [N]"
+icon = ExtResource("7_icon_nota")
+
+[node name="PhoneButton" type="Button" parent="RootControl/TopBar/HBox/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "Menu HP"
+
+[node name="RulerHintLabel" type="Label" parent="RootControl"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 56.0
+offset_right = 320.0
+offset_bottom = 84.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.75, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_pill_hint")
+text = "Alat Ukur Aktif — Dekati atau klik pintu untuk menancapkan meteran"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ToastLabel" type="Label" parent="RootControl"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 88.0
+offset_right = 260.0
+offset_bottom = 116.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_pill_toast")
+text = "Pesan"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ToastTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 2.2
+one_shot = true
+
+[node name="PhonePanel" type="PanelContainer" parent="RootControl"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -135.0
+offset_top = -182.0
+offset_right = 135.0
+offset_bottom = 182.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_phone_bezel")
+
+[node name="PhoneScreen" type="PanelContainer" parent="RootControl/PhonePanel"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_phone_screen")
+
+[node name="PhoneMenuScreen" type="VBoxContainer" parent="RootControl/PhonePanel/PhoneScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="MenuHeader" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneMenuScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14, 0.16, 0.22, 1)
+theme_override_font_sizes/font_size = 14
+text = "Smartphone • Ruang 1"
+horizontal_alignment = 1
+
+[node name="MissionButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneMenuScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.08, 0.1, 0.14, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.18, 0.4, 1)
+theme_override_colors/font_disabled_color = Color(0.55, 0.58, 0.64, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_phone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_phone_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_phone_btn")
+text = "Selesaikan Misi"
+
+[node name="OpenNotesButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneMenuScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.08, 0.1, 0.14, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.18, 0.4, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_phone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_phone_btn_hover")
+text = "Catatan"
+icon = ExtResource("7_icon_nota")
+
+[node name="SettingsButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneMenuScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.08, 0.1, 0.14, 1)
+theme_override_colors/font_hover_color = Color(0.08, 0.18, 0.4, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_phone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_phone_btn_hover")
+text = "Pengaturan"
+
+[node name="MenuSpacer" type="Control" parent="RootControl/PhonePanel/PhoneScreen/PhoneMenuScreen"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ClosePhoneButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneMenuScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "Tutup"
+
+[node name="PhoneNotesScreen" type="VBoxContainer" parent="RootControl/PhonePanel/PhoneScreen"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NotaHeaderPanel" type="PanelContainer" parent="RootControl/PhonePanel/PhoneScreen/PhoneNotesScreen"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nota_header")
+
+[node name="NotaTitle" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneNotesScreen/NotaHeaderPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.14, 0.1, 0.08, 1)
+theme_override_font_sizes/font_size = 16
+text = "Catatan Ukuran"
+horizontal_alignment = 1
+
+[node name="NotesTextEdit" type="TextEdit" parent="RootControl/PhonePanel/PhoneScreen/PhoneNotesScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.1, 0.1, 0.12, 1)
+theme_override_colors/background_color = Color(1, 1, 1, 1)
+theme_override_colors/caret_color = Color(0.1, 0.1, 0.12, 1)
+theme_override_font_sizes/font_size = 13
+placeholder_text = "Catat jarak barang dari pintu (meter)...
+Contoh: Kursi = 4.00 m"
+
+[node name="NotaFooter" type="HBoxContainer" parent="RootControl/PhonePanel/PhoneScreen/PhoneNotesScreen"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NotesBackButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneNotesScreen/NotaFooter"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "< Kembali"
+
+[node name="NotesCloseButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneNotesScreen/NotaFooter"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "Tutup"
+
+[node name="PhoneSettingsScreen" type="VBoxContainer" parent="RootControl/PhonePanel/PhoneScreen"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SettingsTitle" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneSettingsScreen"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.12, 0.16, 1)
+theme_override_font_sizes/font_size = 15
+text = "Panduan Kontrol"
+horizontal_alignment = 1
+
+[node name="ControlsHelp" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneSettingsScreen"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.2, 0.22, 0.26, 1)
+theme_override_font_sizes/font_size = 12
+text = "[A / D] Jalan kiri / kanan
+[Space / W] Lompat
+[E] Masuk / Keluar Pintu
+[F] Alat Ukur (Ruler)
+[N] Buka Catatan
+[Klik Kiri] Ukur / Geser Barang
+[Klik Kanan] Gulung Meteran"
+autowrap_mode = 2
+
+[node name="SettingsRestartButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneSettingsScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "Ulangi Level"
+
+[node name="SettingsBackButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneSettingsScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "< Kembali"
+
+[node name="PhoneResultScreen" type="VBoxContainer" parent="RootControl/PhonePanel/PhoneScreen"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FaceCenter" type="HBoxContainer" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="ClientPortrait" type="TextureRect" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen/FaceCenter"]
+custom_minimum_size = Vector2(36, 48)
+layout_mode = 2
+texture = ExtResource("8_client_portrait")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ResultFaceBadge" type="PanelContainer" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen/FaceCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_face_badge")
+
+[node name="ResultEmojiLabel" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen/FaceCenter/ResultFaceBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_font_sizes/font_size = 18
+text = ":D"
+horizontal_alignment = 1
+
+[node name="ResultTitleLabel" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.12, 0.16, 1)
+theme_override_font_sizes/font_size = 17
+text = "Klien Senang!"
+horizontal_alignment = 1
+
+[node name="ResultSummaryLabel" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.28, 0.34, 1)
+theme_override_font_sizes/font_size = 13
+text = "0 / 0 simetris"
+horizontal_alignment = 1
+
+[node name="ResultDetailsLabel" type="Label" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.18, 0.2, 0.24, 1)
+theme_override_font_sizes/font_size = 12
+text = ""
+autowrap_mode = 2
+
+[node name="RestartButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "Ulangi Level"
+
+[node name="ResultCloseButton" type="Button" parent="RootControl/PhonePanel/PhoneScreen/PhoneResultScreen"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.97, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxTexture_ui_btn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ui_btn_hover")
+text = "Tutup"
