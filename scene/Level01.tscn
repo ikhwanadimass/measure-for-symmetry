@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://x4nekwnbkkyr"]
+
+[ext_resource type="PackedScene" uid="uid://ninafum7a0yl" path="res://scene/player/player.tscn" id="1_cd2m8"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(400, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(20, 130)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_center_wall"]
+size = Vector2(10, 130)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ceiling"]
+size = Vector2(400, 20)
+
+[node name="Level01" type="Node2D" unique_id=63484962]
+
+[node name="RoomBoundaries" type="StaticBody2D" parent="." unique_id=1337652373]
+
+[node name="FloorCollision" type="CollisionShape2D" parent="RoomBoundaries" unique_id=63332520]
+position = Vector2(0, 10)
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="FloorVisual" type="ColorRect" parent="RoomBoundaries" unique_id=1460680622]
+offset_left = -200.0
+offset_right = 200.0
+offset_bottom = 20.0
+color = Color(0.45, 0.4, 0.35, 1)
+
+[node name="LeftWall" type="CollisionShape2D" parent="RoomBoundaries" unique_id=16608068]
+position = Vector2(-210, -65)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="RightWall" type="CollisionShape2D" parent="RoomBoundaries" unique_id=908392050]
+position = Vector2(210, -65)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="CenterWall" type="CollisionShape2D" parent="RoomBoundaries" unique_id=908392051]
+position = Vector2(0, -65)
+shape = SubResource("RectangleShape2D_center_wall")
+
+[node name="Ceiling" type="CollisionShape2D" parent="RoomBoundaries" unique_id=1738827748]
+position = Vector2(0, -140)
+shape = SubResource("RectangleShape2D_ceiling")
+
+[node name="Player" parent="." unique_id=1780209370 instance=ExtResource("1_cd2m8")]
+position = Vector2(-100, -30)
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=2052290757]
+zoom = Vector2(6.5, 6.5)
+limit_left = -200
+limit_top = -130
+limit_right = 0
+limit_bottom = 10
+position_smoothing_enabled = true
