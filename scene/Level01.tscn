@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://2pcnptbssxo2" path="res://asset/tileseet/CartoonRooms/separate images/chair_front.png" id="4_ovpq8"]
 [ext_resource type="Script" uid="uid://c22olsgcxq10j" path="res://script/symmetry_checker.gd" id="6_ovpq8"]
 [ext_resource type="PackedScene" uid="uid://brux7uothsjvq" path="res://scene/measure_tool.tscn" id="7_w5f1j"]
+[ext_resource type="PackedScene" uid="uid://b5ksrpdv6tcj8" path="res://scene/ui/smartphone.tscn" id="8_y2gif"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rcdr2"]
 texture = ExtResource("1_rcdr2")
@@ -2133,3 +2134,5 @@ position_smoothing_enabled = true
 script = ExtResource("6_ovpq8")
 
 [node name="MeasureTool" parent="." unique_id=1399065421 instance=ExtResource("7_w5f1j")]
+
+[node name="Smartphone" parent="." unique_id=331973353 instance=ExtResource("8_y2gif")]

@@ -1,0 +1,356 @@
+[gd_scene format=3 uid="uid://b5ksrpdv6tcj8"]
+
+[ext_resource type="Script" uid="uid://csgorfaeebox6" path="res://script/smartphone.gd" id="1_rvdje"]
+[ext_resource type="Texture2D" uid="uid://d27xymx0re7wb" path="res://asset/handphone/phone_frame.png" id="1_ubnks"]
+[ext_resource type="Texture2D" uid="uid://4yaxhdbla37v" path="res://asset/handphone/icon_phone.png" id="2_4oxf2"]
+[ext_resource type="Texture2D" uid="uid://cwr1a08ubpkvc" path="res://asset/handphone/btn_normal.png" id="2_6rqoo"]
+[ext_resource type="Texture2D" uid="uid://clmktd6wsg87g" path="res://asset/handphone/btn_selected.png" id="3_45wmf"]
+[ext_resource type="Texture2D" uid="uid://dkdpe5fj18gya" path="res://asset/handphone/notes_bg.png" id="4_45wmf"]
+[ext_resource type="Texture2D" uid="uid://4ftpbuucakb0" path="res://asset/free-emojis-pixelart/emojis-x2-64x64/E1.png" id="5_4jxe1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y2gif"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jmhxe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vp8hl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aa0wt"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oob2m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rvdje"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wn15r"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qf7ya"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dcuan"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fykk7"]
+
+[node name="Smartphone" type="CanvasLayer" unique_id=331973353]
+process_mode = 3
+script = ExtResource("1_rvdje")
+
+[node name="DimOverlay" type="ColorRect" parent="." unique_id=1361608518]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+color = Color(0, 0, 0, 0)
+
+[node name="PhoneContainer" type="Control" parent="." unique_id=1658924959]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 362.0
+offset_top = -32.0
+offset_right = 402.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PhoneFrame" type="TextureRect" parent="PhoneContainer" unique_id=748658220]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = -170.0
+offset_right = 90.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_ubnks")
+
+[node name="MainMenu" type="VBoxContainer" parent="PhoneContainer/PhoneFrame" unique_id=1077471627]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -71.0
+offset_top = -125.0
+offset_right = 69.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="BtnFinish" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=104468363]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnFinish" unique_id=1160345388]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Selesaikan Misi"
+
+[node name="BtnNotes" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=1878988270]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnNotes" unique_id=420417699]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Catatan"
+
+[node name="BtnSettings" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=619410528]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnSettings" unique_id=464971493]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Pengaturan"
+
+[node name="NotesScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=303345318]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NotesBG" type="TextureRect" parent="PhoneContainer/PhoneFrame/NotesScreen" unique_id=1906746494]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -125.0
+offset_right = 75.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_45wmf")
+
+[node name="NotesTextEdit" type="TextEdit" parent="PhoneContainer/PhoneFrame/NotesScreen" unique_id=1624823146]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -90.0
+offset_right = 75.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/current_line_color = Color(0.8509804, 0.8509804, 0.88235295, 0.8)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxEmpty_y2gif")
+
+[node name="BtnBackNotes" type="Button" parent="PhoneContainer/PhoneFrame/NotesScreen" unique_id=577696393]
+layout_mode = 0
+offset_left = -68.0
+offset_top = 121.0
+offset_right = 21.0
+offset_bottom = 152.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jmhxe")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_vp8hl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_aa0wt")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_oob2m")
+text = "← Kembali"
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/NotesScreen" unique_id=562591520]
+layout_mode = 0
+offset_left = -5.0
+offset_top = -102.0
+offset_right = 35.0
+offset_bottom = -79.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
+text = "Note"
+
+[node name="ResultScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1859886185]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EmojiRect" type="TextureRect" parent="PhoneContainer/PhoneFrame/ResultScreen" unique_id=1315510489]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -19.0
+offset_top = -59.0
+offset_right = 29.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_4jxe1")
+expand_mode = 2
+
+[node name="ResultLabel" type="Label" parent="PhoneContainer/PhoneFrame/ResultScreen" unique_id=245455240]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 0.475
+anchor_right = 1.0
+anchor_bottom = 0.475
+offset_left = -90.0
+offset_top = 20.0
+offset_right = 50.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "BERHASIL"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="BtnCloseResult" type="Button" parent="PhoneContainer/PhoneFrame/ResultScreen" unique_id=1014965279]
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -24.0
+offset_top = 91.0
+offset_right = 22.0
+offset_bottom = 91.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_wn15r")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qf7ya")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_dcuan")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_fykk7")
+text = "Tutup"
+
+[node name="HUDPhoneButton" type="TextureButton" parent="." unique_id=2044469315]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -105.0
+offset_top = -464.0
+offset_right = -20.0
+offset_bottom = -384.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("2_4oxf2")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="HUDPhoneButton" unique_id=926722740]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 31.0
+offset_right = 54.0
+offset_bottom = 43.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "[TAB]"
+
+[node name="info" type="Label" parent="HUDPhoneButton" unique_id=1519389114]
+layout_mode = 0
+offset_left = -33.0
+offset_right = 17.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "[M] SELESAI
+[N] NOTE
+[F] METERAN"
+
+[node name="InteractLabel" type="Label" parent="HUDPhoneButton" unique_id=1458132401]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 87.0
+offset_right = 82.0
+offset_bottom = 110.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+text = "[E] PINDAH"
+
+[node name="TimerLabel" type="Label" parent="." unique_id=624331662]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -19.0
+offset_top = 32.0
+offset_right = 21.0
+offset_bottom = 55.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "02:00"
