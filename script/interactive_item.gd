@@ -4,22 +4,86 @@ class_name InteractiveItem
 @export var item_id: String = "stool_01"
 
 const MAX_DISTANCE: float = 35.0 
-const FLOOR_Y: float = -12.0 # Ketinggian lantai yang pas untuk bangku
-const FALL_SPEED: float = 300.0 # Kecepatan jatuh saat dilepas di udara
+const FALL_SPEED: float = 300.0
+const LEVEL_FLOOR_Y: float = 0.0
 
 var is_dragging: bool = false
 var player: CharacterBody2D = null
 var home_room: int = 1
 var initial_position: Vector2 = Vector2.ZERO
+var floor_y: float = -12.0
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var sprite: Sprite2D = $Sprite2D
 
 func _ready() -> void:
 	input_pickable = true
 	sync_to_physics = true
+	
+	# Pindahkan barang ke Collision Layer 2 (Props) agar terpisah dari tembok/lantai
+	collision_layer = 2
+	collision_mask = 0
+	
 	player = get_parent().get_node_or_null("Player")
 	home_room = 1 if global_position.x < 0 else 2
+	
+	hitung_batas_lantai()
+	
+	# Letakkan pas di lantai saat game mulai
+	if abs(global_position.y - floor_y) < 8.0:
+		global_position.y = floor_y
+		
 	initial_position = global_position
+
+# Batas kaki paling bawah murni dari Sprite visualnya (ANTI AMBLAS)
+func get_visual_bottom_offset() -> float:
+	if sprite and sprite.texture:
+		var h = sprite.texture.get_height() * abs(sprite.scale.y)
+		return (h / 2.0) + sprite.position.y
+	return 10.0
+
+# Permukaan atas untuk tempat menaruh barang lain (meja/kursi)
+func get_shape_info() -> Dictionary:
+	var visual_bottom = get_visual_bottom_offset()
+	if collision_shape and collision_shape.shape:
+		var pos_offset = collision_shape.position
+		if collision_shape.shape is RectangleShape2D:
+			var sz = (collision_shape.shape as RectangleShape2D).size
+			return {
+				"half_w": sz.x / 2.0,
+				"top": pos_offset.y - (sz.y / 2.0),
+				"bottom_visual": visual_bottom,
+				"offset_x": pos_offset.x
+			}
+	return {"half_w": 10.0, "top": -visual_bottom, "bottom_visual": visual_bottom, "offset_x": 0.0}
+
+func hitung_batas_lantai() -> void:
+	floor_y = LEVEL_FLOOR_Y - get_visual_bottom_offset()
+
+# Sistem Stacking: Meletakkan barang di atas meja/kursi
+func cari_lantai_terdekat(cek_x: float, cek_y: float) -> float:
+	var target_pijakan = floor_y
+	var my_info = get_shape_info()
+	
+	var all_items = get_parent().find_children("*", "InteractiveItem", true, false)
+	for other in all_items:
+		if other == self or other.home_room != home_room:
+			continue
+			
+		var other_info = other.get_shape_info() if other.has_method("get_shape_info") else {"half_w": 10.0, "top": -10.0, "offset_x": 0.0}
+		
+		var other_center_x = other.global_position.x + other_info["offset_x"]
+		var batas_x = other_info["half_w"] + (my_info["half_w"] * 0.4)
+		
+		if abs(cek_x - other_center_x) <= batas_x:
+			var permukaan_atas_other = other.global_position.y + other_info["top"]
+			var letak_menumpuk = permukaan_atas_other - my_info["bottom_visual"]
+			
+			if cek_y <= permukaan_atas_other + 4.0:
+				if letak_menumpuk < target_pijakan:
+					target_pijakan = letak_menumpuk
+					
+	return target_pijakan
 
 func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -37,14 +101,15 @@ func _input(event: InputEvent) -> void:
 
 func start_drag() -> void:
 	is_dragging = true
-	collision_shape.set_deferred("disabled", true)
+	if collision_shape:
+		collision_shape.set_deferred("disabled", true)
 
 func stop_drag() -> void:
 	is_dragging = false
-	collision_shape.set_deferred("disabled", false)
+	if collision_shape:
+		collision_shape.set_deferred("disabled", false)
 
 func _physics_process(delta: float) -> void:
-	# 1. Saat sedang di-drag oleh pemain
 	if is_dragging and player:
 		var player_in_same_room = (player.global_position.x < 0 and home_room == 1) or (player.global_position.x > 0 and home_room == 2)
 		if not player_in_same_room:
@@ -57,28 +122,17 @@ func _physics_process(delta: float) -> void:
 			from_player = from_player.normalized() * MAX_DISTANCE
 		
 		var target_pos = player.global_position + from_player
+		var pijakan_saat_ini = cari_lantai_terdekat(target_pos.x, target_pos.y)
+		target_pos.y = clamp(target_pos.y, -85.0, pijakan_saat_ini)
 		
-		# Batas ruangan horizontal (mepet dinding tanpa menembus dinding)
 		if home_room == 1:
 			target_pos.x = clamp(target_pos.x, -193.0, -11.0)
 		else:
 			target_pos.x = clamp(target_pos.x, 11.0, 193.0)
 			
-		# Saat di-drag, pemain bisa mengangkatnya ke atas untuk melewati barang lain
-		target_pos.y = clamp(target_pos.y, -85.0, FLOOR_Y)
 		global_position = target_pos
 
-	# 2. Saat dilepas: bangku otomatis jatuh kembali ke lantai (jangan sampai melayang)
 	elif not is_dragging:
-		var target_floor = FLOOR_Y
-		
-		# Cek apakah ada bangku lain di bawahnya jika ditumpuk
-		var space_state = get_world_2d().direct_space_state
-		var query = PhysicsRayQueryParameters2D.create(global_position, Vector2(global_position.x, FLOOR_Y + 10.0), 2)
-		query.exclude = [get_rid()]
-		var result = space_state.intersect_ray(query)
-		if result:
-			target_floor = min(FLOOR_Y, result.position.y - 12.0)
-			
+		var target_floor = cari_lantai_terdekat(global_position.x, global_position.y)
 		if global_position.y < target_floor:
 			global_position.y = min(target_floor, global_position.y + FALL_SPEED * delta)

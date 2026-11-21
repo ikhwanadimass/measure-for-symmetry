@@ -16,6 +16,7 @@ func _ready() -> void:
 	line.visible = false
 	label.visible = false
 	player = get_parent().get_node_or_null("Player")
+	update_hud_status()
 
 func _unhandled_input(event: InputEvent) -> void:
 	# 1. Tekan F untuk buka / tutup meteran
@@ -37,7 +38,13 @@ func toggle_tool() -> void:
 	is_active = !is_active
 	if not is_active:
 		reset_measurement()
+	update_hud_status()
 	print("Meteran: ", "AKTIF" if is_active else "NONAKTIF")
+
+func update_hud_status() -> void:
+	var phone = get_tree().current_scene.find_child("Smartphone", true, false)
+	if phone and phone.has_method("set_meteran_aktif"):
+		phone.set_meteran_aktif(is_active)
 
 func handle_click() -> void:
 	if not player:
@@ -46,7 +53,7 @@ func handle_click() -> void:
 	var mouse_pos = get_global_mouse_position()
 	
 	if not is_anchored:
-		# KLIK 1: Tancapkan titik awal (harus dekat pemain)
+		# KLIK 1: Tancapkan titik awal
 		if player.global_position.distance_to(mouse_pos) > MAX_INTERACT_DISTANCE:
 			print("Terlalu jauh! Dekati dulu titik awal yang ingin diukur.")
 			return
@@ -61,27 +68,21 @@ func handle_click() -> void:
 		line.add_point(anchor_point)
 		line.add_point(anchor_point)
 	elif not is_locked:
-		# KLIK 2: Kunci pengukuran di posisi saat ini
+		# KLIK 2: Kunci pengukuran
 		is_locked = true
 		print("Pengukuran terkunci di jarak: ", label.text)
-	else:
-		# Klik lagi setelah terkunci: Reset untuk mengukur baru
-		reset_measurement()
 
 func _process(_delta: float) -> void:
 	if is_active and is_anchored and not is_locked and player:
-		# Ujung meteran ditarik mengikuti pemain (dengan sedikit kelonggaran mouse dekat pemain)
 		var mouse_pos = get_global_mouse_position()
 		var pull_pos = player.global_position
 		
-		# Jika mouse berada dekat dengan pemain, gunakan posisi mouse agar presisi menunjuk objek
 		if player.global_position.distance_to(mouse_pos) <= MAX_INTERACT_DISTANCE:
 			pull_pos = mouse_pos
 			
 		var dx = abs(pull_pos.x - anchor_point.x)
 		var dy = abs(pull_pos.y - anchor_point.y)
 		
-		# Kunci hanya lurus horizontal (Sumbu X) atau lurus vertikal (Sumbu Y)
 		if dx >= dy:
 			current_end_point = Vector2(pull_pos.x, anchor_point.y)
 			label.text = "%.0f cm" % dx
@@ -91,9 +92,7 @@ func _process(_delta: float) -> void:
 			
 		line.set_point_position(1, current_end_point)
 		
-		# Letakkan label di tengah garis ukur
 		var mid_point = (anchor_point + current_end_point) / 2.0
-		# Pusatkan label (ukuran label offset_right 40, offset_bottom 14 -> offset tengah (-20, -12))
 		label.global_position = mid_point + Vector2(-20, -10)
 
 func reset_measurement() -> void:

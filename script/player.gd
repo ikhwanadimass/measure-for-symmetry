@@ -1,35 +1,38 @@
 extends CharacterBody2D
 
-# Kecepatan lari dan tinggi lompat
 @export var speed: float = 160.0
 @export var jump_velocity: float = -150.0
 
-# Gravitasi bawaan engine
 var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
+func _ready() -> void:
+	# Mendeteksi Lantai/Dinding (Layer 1) DAN Perabotan (Layer 2)
+	# Sehingga pemain bisa melompat dan berdiri di atas bangku/meja!
+	collision_mask = 3
+
 func _physics_process(delta: float) -> void:
-	# 1. Tambah gravitasi saat pemain melayang di udara
+	# 1. Tambah gravitasi saat melayang
 	if not is_on_floor():
 		velocity.y += gravity * delta
 
-	# 2. Lompat dengan Spacebar (Action: jump)
+	# 2. Lompat dengan Spacebar
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
 
-	# 3. Gerak kiri/kanan dengan A dan D (Action: move_left & move_right)
+	# 3. Gerak kiri/kanan (A dan D)
 	var direction := Input.get_axis("move_left", "move_right")
 	if direction != 0:
 		velocity.x = direction * speed
-		sprite.flip_h = (direction < 0) # Menghadap ke kiri saat arahnya minus
+		sprite.flip_h = (direction < 0)
 	else:
 		velocity.x = move_toward(velocity.x, 0, speed)
 
-	# 4. Eksekusi pergerakan fisik bawaan CharacterBody2D
+	# 4. Gerakan CharacterBody2D
 	move_and_slide()
 
-	# 5. Jalankan animasi yang sesuai
+	# 5. Animasi
 	update_animation(direction)
 
 func update_animation(direction: float) -> void:

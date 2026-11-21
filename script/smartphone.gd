@@ -1,5 +1,15 @@
 extends CanvasLayer
 
+# ================= PENGATURAN TEKS [F] METERAN =================
+# 1. Warna (Bisa ganti angka R, G, B antara 0.0 sampai 1.0, atau pakai Color.RED, Color.YELLOW, dll.)
+const WARNA_METERAN_AKTIF = Color(0.30, 0.4, 0.25, 1.0)   # Warna saat F aktif (Hijau)
+const WARNA_METERAN_MATI = Color(0.0, 0.0, 0.0, 1.0)       # Warna saat F mati (Hitam)
+
+# 2. Posisi (Geser piksel):
+const GESER_X: float = 0.0    # Tambah angka untuk geser KANAN, kurangi untuk KIRI
+const GESER_Y: float = 30.0   # Tambah angka untuk geser BAWAH, kurangi untuk ATAS
+# ===============================================================
+
 # Asset Emoji
 const EMOJI_HAPPY = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E1.png")
 const EMOJI_NEUTRAL = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E50.png")
@@ -11,6 +21,7 @@ const EMOJI_SAD = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E29.
 @onready var hud_phone_button: TextureButton = $HUDPhoneButton
 @onready var interact_label: Label = $HUDPhoneButton/InteractLabel
 @onready var timer_label: Label = $TimerLabel
+@onready var info_label: Label = $HUDPhoneButton.get_node_or_null("info")
 
 # Layar di dalam HP
 @onready var main_menu: VBoxContainer = $PhoneContainer/PhoneFrame/MainMenu
@@ -31,6 +42,7 @@ const EMOJI_SAD = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E29.
 @onready var result_label: Label = $PhoneContainer/PhoneFrame/ResultScreen/ResultLabel
 @onready var btn_close_result: Button = $PhoneContainer/PhoneFrame/ResultScreen/BtnCloseResult
 
+var meteran_label: Label = null
 var is_open: bool = false
 var waktu_sisa: float = 120.0
 var timer_berjalan: bool = false
@@ -46,9 +58,35 @@ func _ready() -> void:
 	btn_back_notes.pressed.connect(_on_btn_back_notes_pressed)
 	btn_close_result.pressed.connect(_on_btn_close_result_pressed)
 	
+	setup_meteran_label()
 	close_phone()
 	tampilkan_interaksi("")
 	reset_dan_hentikan_timer()
+
+func setup_meteran_label() -> void:
+	if not info_label:
+		return
+	info_label.text = "[M] SELESAI\n[N] NOTE"
+	
+	meteran_label = Label.new()
+	meteran_label.name = "MeteranInfoLabel"
+	meteran_label.text = "[F] METERAN"
+	# Atur posisi berdasarkan offset info_label + geseran kamu
+	meteran_label.position = Vector2(info_label.offset_left + GESER_X, info_label.offset_top + GESER_Y)
+	meteran_label.add_theme_font_size_override("font_size", 8)
+	meteran_label.add_theme_color_override("font_color", WARNA_METERAN_MATI)
+	
+	if info_label.has_theme_font_override("font"):
+		meteran_label.add_theme_font_override("font", info_label.get_theme_font("font"))
+		
+	info_label.get_parent().add_child(meteran_label)
+
+func set_meteran_aktif(aktif: bool) -> void:
+	if meteran_label:
+		if aktif:
+			meteran_label.add_theme_color_override("font_color", WARNA_METERAN_AKTIF)
+		else:
+			meteran_label.add_theme_color_override("font_color", WARNA_METERAN_MATI)
 
 func _process(delta: float) -> void:
 	if timer_berjalan and not is_open:
@@ -102,7 +140,7 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 
-	# 2. SHORTCUT ENTER / SPACE DI LAYAR HASIL (Lanjut atau Ulangi):
+	# 2. SHORTCUT ENTER / SPACE DI LAYAR HASIL:
 	if is_open and result_screen.visible:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE:
 			_on_btn_close_result_pressed()
@@ -206,7 +244,6 @@ func _on_btn_settings_pressed() -> void:
 func _on_btn_close_result_pressed() -> void:
 	if status_evaluasi == "game_over":
 		get_tree().paused = false
-		# Menggunakan call_deferred agar aman dan tidak crash ke Godot
 		get_tree().call_deferred("reload_current_scene")
 	else:
 		close_phone()
