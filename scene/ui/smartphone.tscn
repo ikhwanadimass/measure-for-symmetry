@@ -49,10 +49,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 362.0
-offset_top = -32.0
-offset_right = 402.0
-offset_bottom = 8.0
+offset_left = 396.0
+offset_top = 23.0
+offset_right = 436.0
+offset_bottom = 63.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -78,13 +78,57 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -71.0
-offset_top = -125.0
-offset_right = 69.0
-offset_bottom = 25.0
+offset_left = -68.0
+offset_top = -121.0
+offset_right = 72.0
+offset_bottom = 59.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
+
+[node name="BtnContinue" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=661747123]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnContinue" unique_id=1904495031]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Lanjutkan"
+
+[node name="BtnLevelSelect" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=1803188663]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnLevelSelect" unique_id=368150082]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Pilih Level"
 
 [node name="BtnFinish" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=104468363]
 layout_mode = 2
@@ -225,7 +269,89 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
 text = "Note"
 
+[node name="LevelSelectScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1550897800]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NotesBG" type="TextureRect" parent="PhoneContainer/PhoneFrame/LevelSelectScreen" unique_id=29865753]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -125.0
+offset_right = 75.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_45wmf")
+
+[node name="BtnBackLevelSelect" type="Button" parent="PhoneContainer/PhoneFrame/LevelSelectScreen" unique_id=485377776]
+layout_mode = 0
+offset_left = -68.0
+offset_top = 121.0
+offset_right = 21.0
+offset_bottom = 152.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jmhxe")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_vp8hl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_aa0wt")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_oob2m")
+text = "← Kembali"
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/LevelSelectScreen" unique_id=1485615319]
+layout_mode = 0
+offset_left = -24.0
+offset_top = -101.0
+offset_right = 66.0
+offset_bottom = -78.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
+text = "PILIH LEVEL"
+
+[node name="BtnLevel1" type="TextureButton" parent="PhoneContainer/PhoneFrame/LevelSelectScreen" unique_id=168826150]
+layout_mode = 0
+offset_left = -53.0
+offset_top = -66.0
+offset_right = 87.0
+offset_bottom = -38.0
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/LevelSelectScreen/BtnLevel1" unique_id=922684518]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -58.0
+offset_top = -14.0
+offset_right = 60.0
+offset_bottom = 9.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Level 1"
+
 [node name="ResultScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1859886185]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -322,23 +448,23 @@ text = "[TAB]"
 
 [node name="info" type="Label" parent="HUDPhoneButton" unique_id=1519389114]
 layout_mode = 0
-offset_left = -33.0
+offset_left = -103.0
 offset_right = 17.0
-offset_bottom = 42.0
+offset_bottom = 75.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 8
+theme_override_font_sizes/font_size = 15
 text = "[M] SELESAI
 [N] NOTE
 [F] METERAN"
 
 [node name="InteractLabel" type="Label" parent="HUDPhoneButton" unique_id=1458132401]
 layout_mode = 0
-offset_left = 18.0
-offset_top = 87.0
-offset_right = 82.0
-offset_bottom = 110.0
+offset_left = 4.0
+offset_top = 90.0
+offset_right = 79.0
+offset_bottom = 113.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 14
 text = "[E] PINDAH"
 
 [node name="TimerLabel" type="Label" parent="." unique_id=624331662]

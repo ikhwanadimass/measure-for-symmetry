@@ -1,13 +1,12 @@
 extends CanvasLayer
 
 # ================= PENGATURAN TEKS [F] METERAN =================
-# 1. Warna (Bisa ganti angka R, G, B antara 0.0 sampai 1.0, atau pakai Color.RED, Color.YELLOW, dll.)
-const WARNA_METERAN_AKTIF = Color(0.30, 0.4, 0.25, 1.0)   # Warna saat F aktif (Hijau)
-const WARNA_METERAN_MATI = Color(0.0, 0.0, 0.0, 1.0)       # Warna saat F mati (Hitam)
+const WARNA_METERAN_AKTIF = Color(0.15, 0.5, 0.25, 1.0)
+const WARNA_METERAN_MATI = Color(0.0, 0.0, 0.0, 1.0)
 
-# 2. Posisi (Geser piksel):
-const GESER_X: float = 0.0    # Tambah angka untuk geser KANAN, kurangi untuk KIRI
-const GESER_Y: float = 30.0   # Tambah angka untuk geser BAWAH, kurangi untuk ATAS
+# Posisi teks:
+const GESER_X: float = 0.0
+const GESER_Y: float = 47.0   # Jarak baris ke-3 untuk font size 15 (bisa diatur jika kurang pas)
 # ===============================================================
 
 # Asset Emoji
@@ -27,11 +26,18 @@ const EMOJI_SAD = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E29.
 @onready var main_menu: VBoxContainer = $PhoneContainer/PhoneFrame/MainMenu
 @onready var notes_screen: Control = $PhoneContainer/PhoneFrame/NotesScreen
 @onready var result_screen: Control = $PhoneContainer/PhoneFrame/ResultScreen
+@onready var level_select_screen: Control = $PhoneContainer/PhoneFrame.get_node_or_null("LevelSelectScreen")
 
 # Tombol Menu Utama
+@onready var btn_continue: TextureButton = $PhoneContainer/PhoneFrame/MainMenu.get_node_or_null("BtnContinue")
+@onready var btn_level_select: TextureButton = $PhoneContainer/PhoneFrame/MainMenu.get_node_or_null("BtnLevelSelect")
 @onready var btn_finish: TextureButton = $PhoneContainer/PhoneFrame/MainMenu/BtnFinish
 @onready var btn_notes: TextureButton = $PhoneContainer/PhoneFrame/MainMenu/BtnNotes
 @onready var btn_settings: TextureButton = $PhoneContainer/PhoneFrame/MainMenu/BtnSettings
+
+# Tombol di Layar Pilih Level
+@onready var btn_back_level_select: Button = $PhoneContainer/PhoneFrame.get_node_or_null("LevelSelectScreen/BtnBackLevelSelect")
+@onready var btn_level_1: TextureButton = $PhoneContainer/PhoneFrame.get_node_or_null("LevelSelectScreen/BtnLevel1")
 
 # Elemen Catatan
 @onready var btn_back_notes: Button = $PhoneContainer/PhoneFrame/NotesScreen/BtnBackNotes
@@ -58,10 +64,20 @@ func _ready() -> void:
 	btn_back_notes.pressed.connect(_on_btn_back_notes_pressed)
 	btn_close_result.pressed.connect(_on_btn_close_result_pressed)
 	
+	if btn_continue:
+		btn_continue.pressed.connect(_on_btn_continue_pressed)
+	if btn_level_select:
+		btn_level_select.pressed.connect(_on_btn_level_select_pressed)
+	if btn_back_level_select:
+		btn_back_level_select.pressed.connect(_on_btn_back_level_select_pressed)
+	if btn_level_1:
+		btn_level_1.pressed.connect(_on_btn_level_1_pressed)
+	
 	setup_meteran_label()
-	close_phone()
 	tampilkan_interaksi("")
 	reset_dan_hentikan_timer()
+	
+	open_phone()
 
 func setup_meteran_label() -> void:
 	if not info_label:
@@ -71,14 +87,19 @@ func setup_meteran_label() -> void:
 	meteran_label = Label.new()
 	meteran_label.name = "MeteranInfoLabel"
 	meteran_label.text = "[F] METERAN"
-	# Atur posisi berdasarkan offset info_label + geseran kamu
 	meteran_label.position = Vector2(info_label.offset_left + GESER_X, info_label.offset_top + GESER_Y)
-	meteran_label.add_theme_font_size_override("font_size", 8)
-	meteran_label.add_theme_color_override("font_color", WARNA_METERAN_MATI)
 	
+	# OTOMATIS MENYAMAKAN UKURAN FONT DARI INFO_LABEL:
+	var ukuran = 15
+	if info_label.has_theme_font_size_override("font_size"):
+		ukuran = info_label.get_theme_font_size("font_size")
+	meteran_label.add_theme_font_size_override("font_size", ukuran)
+	
+	# Samakan jenis font jika ada
 	if info_label.has_theme_font_override("font"):
 		meteran_label.add_theme_font_override("font", info_label.get_theme_font("font"))
 		
+	meteran_label.add_theme_color_override("font_color", WARNA_METERAN_MATI)
 	info_label.get_parent().add_child(meteran_label)
 
 func set_meteran_aktif(aktif: bool) -> void:
@@ -87,6 +108,25 @@ func set_meteran_aktif(aktif: bool) -> void:
 			meteran_label.add_theme_color_override("font_color", WARNA_METERAN_AKTIF)
 		else:
 			meteran_label.add_theme_color_override("font_color", WARNA_METERAN_MATI)
+
+func _on_btn_continue_pressed() -> void:
+	close_phone()
+
+func _on_btn_level_select_pressed() -> void:
+	show_screen("level_select")
+
+func _on_btn_back_level_select_pressed() -> void:
+	show_screen("main")
+	if btn_level_select:
+		btn_level_select.grab_focus()
+
+func _on_btn_level_1_pressed() -> void:
+	var current_path = get_tree().current_scene.scene_file_path
+	if current_path == "res://scene/Level01.tscn":
+		close_phone()
+	else:
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://scene/Level01.tscn")
 
 func _process(delta: float) -> void:
 	if timer_berjalan and not is_open:
@@ -133,27 +173,29 @@ func _input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
 		
-	# 1. PENGAMAN NOTEPAD:
 	if notes_screen.visible and notes_text_edit.has_focus():
 		if event.keycode == KEY_TAB or event.keycode == KEY_ESCAPE:
 			toggle_phone()
 			get_viewport().set_input_as_handled()
 		return
 
-	# 2. SHORTCUT ENTER / SPACE DI LAYAR HASIL:
 	if is_open and result_screen.visible:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE:
 			_on_btn_close_result_pressed()
 			get_viewport().set_input_as_handled()
 			return
 
-	# 3. SHORTCUT UTAMA:
 	if event.keycode == KEY_TAB:
 		toggle_phone()
 		get_viewport().set_input_as_handled()
 		return
 	elif event.keycode == KEY_ESCAPE and is_open:
-		close_phone()
+		if level_select_screen and level_select_screen.visible:
+			_on_btn_back_level_select_pressed()
+		elif notes_screen.visible:
+			_on_btn_back_notes_pressed()
+		else:
+			close_phone()
 		get_viewport().set_input_as_handled()
 		return
 	elif event.keycode == KEY_N:
@@ -165,7 +207,6 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	# 4. Navigasi W dan S:
 	if is_open and main_menu.visible:
 		if event.keycode == KEY_W:
 			var focused = get_viewport().gui_get_focus_owner()
@@ -174,7 +215,7 @@ func _input(event: InputEvent) -> void:
 				if prev_btn:
 					prev_btn.grab_focus()
 			else:
-				btn_finish.grab_focus()
+				btn_continue.grab_focus()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_S:
 			var focused = get_viewport().gui_get_focus_owner()
@@ -183,7 +224,7 @@ func _input(event: InputEvent) -> void:
 				if next_btn:
 					next_btn.grab_focus()
 			else:
-				btn_finish.grab_focus()
+				btn_continue.grab_focus()
 			get_viewport().set_input_as_handled()
 
 func toggle_phone() -> void:
@@ -198,7 +239,8 @@ func open_phone() -> void:
 	phone_container.visible = true
 	get_tree().paused = true
 	show_screen("main")
-	btn_finish.grab_focus()
+	if btn_continue:
+		btn_continue.grab_focus()
 
 func close_phone() -> void:
 	is_open = false
@@ -210,6 +252,8 @@ func show_screen(screen_name: String) -> void:
 	main_menu.visible = (screen_name == "main")
 	notes_screen.visible = (screen_name == "notes")
 	result_screen.visible = (screen_name == "result")
+	if level_select_screen:
+		level_select_screen.visible = (screen_name == "level_select")
 
 func buka_catatan_langsung() -> void:
 	if not is_open:
