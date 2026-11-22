@@ -13,6 +13,9 @@ var home_room: int = 1
 var initial_position: Vector2 = Vector2.ZERO
 var floor_y: float = -12.0
 
+var drag_sound_timer: float = 0.0
+var prev_drag_pos: Vector2 = Vector2.ZERO
+
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var sprite: Sprite2D = $Sprite2D
 
@@ -20,7 +23,6 @@ func _ready() -> void:
 	input_pickable = true
 	sync_to_physics = true
 	
-	# Pindahkan barang ke Collision Layer 2 (Props) agar terpisah dari tembok/lantai
 	collision_layer = 2
 	collision_mask = 0
 	
@@ -29,20 +31,17 @@ func _ready() -> void:
 	
 	hitung_batas_lantai()
 	
-	# Letakkan pas di lantai saat game mulai
 	if abs(global_position.y - floor_y) < 8.0:
 		global_position.y = floor_y
 		
 	initial_position = global_position
 
-# Batas kaki paling bawah murni dari Sprite visualnya (ANTI AMBLAS)
 func get_visual_bottom_offset() -> float:
 	if sprite and sprite.texture:
 		var h = sprite.texture.get_height() * abs(sprite.scale.y)
 		return (h / 2.0) + sprite.position.y
 	return 10.0
 
-# Permukaan atas untuk tempat menaruh barang lain (meja/kursi)
 func get_shape_info() -> Dictionary:
 	var visual_bottom = get_visual_bottom_offset()
 	if collision_shape and collision_shape.shape:
@@ -60,7 +59,6 @@ func get_shape_info() -> Dictionary:
 func hitung_batas_lantai() -> void:
 	floor_y = LEVEL_FLOOR_Y - get_visual_bottom_offset()
 
-# Sistem Stacking: Meletakkan barang di atas meja/kursi
 func cari_lantai_terdekat(cek_x: float, cek_y: float) -> float:
 	var target_pijakan = floor_y
 	var my_info = get_shape_info()
@@ -71,7 +69,6 @@ func cari_lantai_terdekat(cek_x: float, cek_y: float) -> float:
 			continue
 			
 		var other_info = other.get_shape_info() if other.has_method("get_shape_info") else {"half_w": 10.0, "top": -10.0, "offset_x": 0.0}
-		
 		var other_center_x = other.global_position.x + other_info["offset_x"]
 		var batas_x = other_info["half_w"] + (my_info["half_w"] * 0.4)
 		
@@ -101,6 +98,8 @@ func _input(event: InputEvent) -> void:
 
 func start_drag() -> void:
 	is_dragging = true
+	prev_drag_pos = global_position
+	drag_sound_timer = 0.0
 	if collision_shape:
 		collision_shape.set_deferred("disabled", true)
 
@@ -108,6 +107,9 @@ func stop_drag() -> void:
 	is_dragging = false
 	if collision_shape:
 		collision_shape.set_deferred("disabled", false)
+	# Suara ketukan kayu saat perabot ditaruh
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("drop", 3.0)
 
 func _physics_process(delta: float) -> void:
 	if is_dragging and player:
@@ -131,6 +133,16 @@ func _physics_process(delta: float) -> void:
 			target_pos.x = clamp(target_pos.x, 11.0, 193.0)
 			
 		global_position = target_pos
+
+		# Suara gesekan kayu jelas saat perabot bergerak diseret
+		var jarak_gerak = global_position.distance_to(prev_drag_pos)
+		if jarak_gerak > 0.4:
+			drag_sound_timer -= delta
+			if drag_sound_timer <= 0.0:
+				drag_sound_timer = 0.22
+				var am = get_node_or_null("/root/AudioManager")
+				if am: am.play_sfx("drag", 3.0, randf_range(0.95, 1.05))
+		prev_drag_pos = global_position
 
 	elif not is_dragging:
 		var target_floor = cari_lantai_terdekat(global_position.x, global_position.y)

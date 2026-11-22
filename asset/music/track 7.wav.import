@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dak04rattbdrm"
+path="res://.godot/imported/track 7.wav-43d2f3086fa80a0ddf559d3b07c9483c.sample"
+
+[deps]
+
+source_file="res://asset/music/track 7.wav"
+dest_files=["res://.godot/imported/track 7.wav-43d2f3086fa80a0ddf559d3b07c9483c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

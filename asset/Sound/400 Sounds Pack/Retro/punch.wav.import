@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cjh0ikgi63a5l"
+path="res://.godot/imported/punch.wav-42caee511d6e442f6990cc9fa68bb2fb.sample"
+
+[deps]
+
+source_file="res://asset/Sound/400 Sounds Pack/Retro/punch.wav"
+dest_files=["res://.godot/imported/punch.wav-42caee511d6e442f6990cc9fa68bb2fb.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

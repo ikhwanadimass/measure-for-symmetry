@@ -19,43 +19,38 @@ func _ready() -> void:
 	update_hud_status()
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 1. Tekan F untuk buka / tutup meteran
 	if event.is_action_pressed("measure"):
 		toggle_tool()
 
 	if not is_active:
 		return
 
-	# 2. Klik Kanan: Gulung / reset meteran
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 		reset_measurement()
 
-	# 3. Klik Kiri: Tancapkan atau Kunci meteran
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		handle_click()
 
 func toggle_tool() -> void:
 	is_active = !is_active
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("measure", -4.0)
+	
 	if not is_active:
 		reset_measurement()
 	update_hud_status()
-	print("Meteran: ", "AKTIF" if is_active else "NONAKTIF")
 
 func update_hud_status() -> void:
 	var phone = get_tree().current_scene.find_child("Smartphone", true, false)
-	if phone and phone.has_method("set_meteran_aktif"):
-		phone.set_meteran_aktif(is_active)
+	if phone and phone.has_method("set_status_meteran"):
+		phone.set_status_meteran(is_active)
 
 func handle_click() -> void:
-	if not player:
-		return
-		
+	if not player: return
 	var mouse_pos = get_global_mouse_position()
 	
 	if not is_anchored:
-		# KLIK 1: Tancapkan titik awal
 		if player.global_position.distance_to(mouse_pos) > MAX_INTERACT_DISTANCE:
-			print("Terlalu jauh! Dekati dulu titik awal yang ingin diukur.")
 			return
 			
 		anchor_point = mouse_pos
@@ -67,10 +62,10 @@ func handle_click() -> void:
 		line.clear_points()
 		line.add_point(anchor_point)
 		line.add_point(anchor_point)
+		# Suara klik ditiadakan agar hening saat menancapkan meteran
 	elif not is_locked:
-		# KLIK 2: Kunci pengukuran
 		is_locked = true
-		print("Pengukuran terkunci di jarak: ", label.text)
+		# Suara klik ditiadakan saat mengunci meteran
 
 func _process(_delta: float) -> void:
 	if is_active and is_anchored and not is_locked and player:
@@ -96,8 +91,10 @@ func _process(_delta: float) -> void:
 		label.global_position = mid_point + Vector2(-20, -10)
 
 func reset_measurement() -> void:
+	if is_anchored:
+		var am = get_node_or_null("/root/AudioManager")
+		if am: am.play_sfx("measure", -6.0)
 	is_anchored = false
 	is_locked = false
-	line.clear_points()
 	line.visible = false
 	label.visible = false

@@ -600,7 +600,7 @@ func test_all_gameplay_level_scenes_and_physics() -> bool:
 		if retried_phone:
 			assert_eq(bool(retried_phone.get("is_game_started")), true, "TC-05 Retry starts gameplay immediately")
 
-			retried_phone.call("kembali_ke_judul")
+			retried_phone.call("_on_btn_main_menu_pressed")
 			retried_phone.call("_on_btn_level_1_pressed")
 			await process_frame
 			await process_frame

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://d3u1r0y5obwy8"
+path="res://.godot/imported/wood_creak_2.wav-9eacfeca7d6f9b13565e740d11890877.sample"
+
+[deps]
+
+source_file="res://asset/Sound/96 Extra SFX/wood_creak_2.wav"
+dest_files=["res://.godot/imported/wood_creak_2.wav-9eacfeca7d6f9b13565e740d11890877.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
