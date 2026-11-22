@@ -294,6 +294,18 @@ func _on_btn_continue_game_pressed() -> void:
 	var level_target: int = int(gm.current_level) if gm else 1
 	_masuk_level_bersih(level_target)
 
+func _style_level_button_label(btn: Control) -> void:
+	if not btn:
+		return
+	for child in btn.get_children():
+		if child is Label:
+			var lbl := child as Label
+			lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			lbl.add_theme_font_size_override("font_size", UKURAN_FONT_LABEL)
+			return
+
 func setup_level_select_otomatis() -> void:
 	if not level_select_screen or not btn_level_1:
 		return
@@ -301,14 +313,27 @@ func setup_level_select_otomatis() -> void:
 		return
 
 	var gm = get_node_or_null("/root/GameManager")
-	var max_level: int = gm.get_max_level() if (gm and gm.has_method("get_max_level")) else 5
+	var max_level: int = gm.get_max_level() if (gm and gm.has_method("get_max_level")) else 10
+
+	var use_grid: bool = max_level > 5
+	var base_left: float = btn_level_1.offset_left
+	var base_top: float = btn_level_1.offset_top
+	var full_width: float = maxf(60.0, btn_level_1.offset_right - btn_level_1.offset_left)
+	var btn_height: float = maxf(20.0, btn_level_1.offset_bottom - btn_level_1.offset_top)
+	var col_gap: float = 6.0
+	var row_gap: float = 6.0
+	var col_width: float = (full_width - col_gap) * 0.5 if use_grid else full_width
 
 	level_buttons[1] = btn_level_1
-	set_btn_label(btn_level_1, "Level 1")
+	btn_level_1.ignore_texture_size = true
+	btn_level_1.stretch_mode = TextureButton.STRETCH_SCALE
+	btn_level_1.offset_left = base_left
+	btn_level_1.offset_right = base_left + col_width
+	btn_level_1.offset_top = base_top
+	btn_level_1.offset_bottom = base_top + btn_height
+	_style_level_button_label(btn_level_1)
+	set_btn_label(btn_level_1, "Lv 1" if use_grid else "Level 1")
 
-	var base_top: float = btn_level_1.offset_top
-	var btn_height: float = maxf(20.0, btn_level_1.offset_bottom - btn_level_1.offset_top)
-	var gap: float = 6.0
 	var insert_idx: int = btn_level_1.get_index() + 1
 
 	for lvl in range(2, max_level + 1):
@@ -316,12 +341,20 @@ func setup_level_select_otomatis() -> void:
 		if not btn_lvl:
 			continue
 		btn_lvl.name = "BtnLevel%d" % lvl
-		var top_y: float = base_top + float(lvl - 1) * (btn_height + gap)
-		btn_lvl.offset_left = btn_level_1.offset_left
-		btn_lvl.offset_right = btn_level_1.offset_right
+		btn_lvl.ignore_texture_size = true
+		btn_lvl.stretch_mode = TextureButton.STRETCH_SCALE
+
+		var col: int = (lvl - 1) % 2 if use_grid else 0
+		@warning_ignore("integer_division")
+		var row: int = ((lvl - 1) / 2) if use_grid else (lvl - 1)
+		var left_x: float = base_left + float(col) * (col_width + col_gap)
+		var top_y: float = base_top + float(row) * (btn_height + row_gap)
+		btn_lvl.offset_left = left_x
+		btn_lvl.offset_right = left_x + col_width
 		btn_lvl.offset_top = top_y
 		btn_lvl.offset_bottom = top_y + btn_height
-		set_btn_label(btn_lvl, "Level %d" % lvl)
+		_style_level_button_label(btn_lvl)
+		set_btn_label(btn_lvl, ("Lv %d" % lvl) if use_grid else ("Level %d" % lvl))
 		btn_lvl.pressed.connect(_on_btn_level_pressed.bind(lvl))
 		level_select_screen.add_child(btn_lvl)
 		level_select_screen.move_child(btn_lvl, insert_idx)
@@ -333,6 +366,7 @@ func setup_level_select_otomatis() -> void:
 func update_level_select_buttons() -> void:
 	var gm = get_node_or_null("/root/GameManager")
 	var unlocked: int = int(gm.unlocked_level) if gm else 1
+	var use_grid: bool = level_buttons.size() > 5
 	for lvl: int in level_buttons:
 		var btn: TextureButton = level_buttons[lvl]
 		if not is_instance_valid(btn):
@@ -341,7 +375,8 @@ func update_level_select_buttons() -> void:
 		btn.disabled = not is_unlocked
 		btn.focus_mode = Control.FOCUS_ALL if is_unlocked else Control.FOCUS_NONE
 		btn.modulate = Color(1.0, 1.0, 1.0, 1.0) if is_unlocked else Color(0.55, 0.55, 0.55, 0.75)
-		set_btn_label(btn, ("Level %d" % lvl) if is_unlocked else ("Level %d [X]" % lvl))
+		var prefix: String = "Lv" if use_grid else "Level"
+		set_btn_label(btn, ("%s %d" % [prefix, lvl]) if is_unlocked else ("%s %d [X]" % [prefix, lvl]))
 
 func _on_btn_level_pressed(level_num: int) -> void:
 	var gm = get_node_or_null("/root/GameManager")

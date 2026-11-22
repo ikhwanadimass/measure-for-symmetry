@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://script/wall_frame_item.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://djd7nujp0nmvv" path="res://asset/tileseet/CartoonRooms/tileset_v1.png" id="2_tileset"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame"]
+atlas = ExtResource("2_tileset")
+region = Rect2(37, 70, 14, 13)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_frame"]
+size = Vector2(21, 17)
+
+[node name="WallFrameItem" type="AnimatableBody2D"]
+collision_layer = 4
+collision_mask = 0
+input_pickable = true
+script = ExtResource("1_script")
+item_id = "frame_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1.5227274, 1.2794117)
+texture = SubResource("AtlasTexture_frame")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_frame")

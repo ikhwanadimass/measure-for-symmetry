@@ -6,8 +6,14 @@ const GAMEPLAY_LEVEL_PATHS: Array[String] = [
 	"res://scene/level/Level03.tscn",
 	"res://scene/level/Level04.tscn",
 	"res://scene/level/Level05.tscn",
+	"res://scene/level/Level06.tscn",
+	"res://scene/level/Level07.tscn",
+	"res://scene/level/Level08.tscn",
+	"res://scene/level/Level09.tscn",
+	"res://scene/level/Level10.tscn",
 ]
 const PROP_SCENE := preload("res://scene/props/interactive_item.tscn")
+const WALL_FRAME_SCENE := preload("res://scene/props/wall_frame_item.tscn")
 const SYMMETRY_CHECKER_SCRIPT := preload("res://script/symmetry_checker.gd")
 
 var passed: int = 0
@@ -32,6 +38,7 @@ func run_tests() -> void:
 		"test_cleanup_and_rerandomization",
 		"test_all_gameplay_level_scenes_and_physics",
 		"test_main_mechanics_compatibility",
+		"test_wall_frame_mechanics",
 	]
 
 	for test_name in tests:
@@ -58,14 +65,22 @@ func assert_true(cond: bool, label: String) -> void:
 
 
 func test_progression_counts() -> bool:
-	var expected := {1: 1, 2: 2, 3: 4, 4: 7, 5: 11}
+	var expected := {1: 1, 2: 2, 3: 4, 4: 7, 5: 11, 6: 2, 7: 3, 8: 5, 9: 8, 10: 12}
+	var expected_comp := {
+		1: [1, 0], 2: [2, 0], 3: [4, 0], 4: [7, 0], 5: [11, 0],
+		6: [1, 1], 7: [1, 2], 8: [3, 2], 9: [4, 4], 10: [7, 5],
+	}
 	for lvl: int in expected:
 		assert_eq(LevelProgression.get_total_objects(lvl), expected[lvl], "TC-01 total_objects L%d" % lvl)
+		var comp: Dictionary = LevelProgression.get_level_composition(lvl)
+		assert_eq(int(comp["furniture"]), expected_comp[lvl][0], "Composition furniture L%d" % lvl)
+		assert_eq(int(comp["frames"]), expected_comp[lvl][1], "Composition frames L%d" % lvl)
+		assert_eq(int(comp["total"]), expected[lvl], "Composition total L%d" % lvl)
 	return true
 
 
 func test_min_pass_scores() -> bool:
-	var expected := {1: 1, 2: 1, 4: 3, 7: 5, 11: 8}
+	var expected := {1: 1, 2: 1, 3: 2, 4: 3, 5: 3, 7: 5, 8: 6, 11: 8, 12: 9}
 	for total: int in expected:
 		assert_eq(LevelProgression.get_min_pass_score(total), expected[total], "TC-09..13 min_pass_score(%d)" % total)
 	return true
@@ -158,6 +173,7 @@ func _validate_grounded_spatial_invariants(spawner: Room2Spawner, level: int, it
 		var top: float = float(rec["top"])
 		var bottom: float = float(rec["bottom"])
 		var support_idx: int = int(rec["support_index"])
+		var is_wall: bool = bool(rec.get("is_wall_mounted", false))
 
 		# Safe Spawn Area (walls, ceiling, floor)
 		assert_true(left >= spawner.room_rect.position.x + spawner.wall_padding - 0.01, "Left wall padding L%d iter %d idx %d" % [level, iteration, idx])
@@ -169,6 +185,20 @@ func _validate_grounded_spatial_invariants(spawner: Room2Spawner, level: int, it
 		var dist_player: float = pos.distance_to(spawner.player_spawn_position)
 		assert_true(dist_player >= exclusion_radius - 0.01, "Player exclusion L%d iter %d idx %d (dist=%.2f)" % [level, iteration, idx, dist_player])
 
+		if is_wall:
+			assert_eq(support_idx, -1, "Wall frame has no support_index L%d iter %d idx %d" % [level, iteration, idx])
+			assert_true(pos.y >= spawner.room_rect.end.y - spawner.wall_frame_max_height - 0.01, "Wall frame within max reach height L%d iter %d idx %d (y=%.2f)" % [level, iteration, idx, pos.y])
+			assert_true(pos.y <= spawner.room_rect.end.y - minf(spawner.wall_frame_min_height, spawner.wall_frame_max_height) + 0.01, "Wall frame above min wall height L%d iter %d idx %d (y=%.2f)" % [level, iteration, idx, pos.y])
+			assert_true(bottom <= spawner.room_rect.end.y - 10.0 + 0.01, "Wall frame mounted above floor L%d iter %d idx %d (bottom=%.2f)" % [level, iteration, idx, bottom])
+			for other_idx in range(idx + 1, records.size()):
+				var other: Dictionary = records[other_idx]
+				if not bool(other.get("is_wall_mounted", false)):
+					continue
+				var v_overlap: bool = (top < float(other["bottom"]) + spawner.min_gap - 0.01) and (bottom > float(other["top"]) - spawner.min_gap + 0.01)
+				var h_overlap: bool = (left < float(other["right"]) + spawner.min_gap - 0.01) and (right > float(other["left"]) - spawner.min_gap + 0.01)
+				assert_true(not (v_overlap and h_overlap), "No wall frame overlap L%d iter %d (%d vs %d)" % [level, iteration, idx, other_idx])
+			continue
+
 		# Zero floating: must rest flush on floor OR flush on a valid support object
 		if support_idx < 0:
 			assert_true(absf(bottom - spawner.room_rect.end.y) <= 0.5, "Grounded on floor L%d iter %d idx %d (bottom=%.2f)" % [level, iteration, idx, bottom])
@@ -178,12 +208,16 @@ func _validate_grounded_spatial_invariants(spawner: Room2Spawner, level: int, it
 			var sup: Dictionary = records[support_idx]
 			assert_true(bool(sup["can_support_stack"]), "Support allows stacking L%d iter %d idx %d" % [level, iteration, idx])
 			assert_true(absf(bottom - float(sup["surface_y"])) <= 0.5, "Flush on support surface L%d iter %d idx %d" % [level, iteration, idx])
+			assert_true(absf(bottom - float(sup["top"])) <= 1.0, "Zero visual stack gap L%d iter %d idx %d (bottom=%.2f sup_top=%.2f)" % [level, iteration, idx, bottom, float(sup["top"])])
+			assert_true(left >= float(sup["left"]) - 1.05 and right <= float(sup["right"]) + 1.05, "Zero visual overhang L%d iter %d idx %d (L=%.1f..%.1f on %.1f..%.1f)" % [level, iteration, idx, left, right, float(sup["left"]), float(sup["right"])])
 
-		# Zero overlap against all non-supporting items
+		# Zero overlap against all non-supporting furniture items
 		for other_idx in range(idx + 1, records.size()):
 			if int(records[other_idx]["support_index"]) == idx or support_idx == other_idx:
 				continue
 			var other: Dictionary = records[other_idx]
+			if bool(other.get("is_wall_mounted", false)):
+				continue
 			var v_overlap: bool = (top < float(other["bottom"]) - 0.5) and (bottom > float(other["top"]) + 0.5)
 			var h_overlap: bool = (left < float(other["right"]) + spawner.min_gap - 0.01) and (right > float(other["left"]) - spawner.min_gap + 0.01)
 			assert_true(not (v_overlap and h_overlap), "No overlap L%d iter %d (%d vs %d)" % [level, iteration, idx, other_idx])
@@ -201,14 +235,27 @@ func test_grounded_and_stacked_invariants() -> bool:
 	host.add_child(spawner)
 
 	var stacked_observed_high_levels: bool = false
-	for lvl in range(1, 6):
-		for iter in range(25):
+	var wall_frames_observed_high_levels: bool = false
+	for lvl in range(1, 11):
+		var expected_comp: Dictionary = LevelProgression.get_level_composition(lvl)
+		for iter in range(20):
 			spawner.spawn_level_objects(lvl, spawner.player_spawn_position)
 			var has_stack: bool = _validate_grounded_spatial_invariants(spawner, lvl, iter)
 			if lvl >= 4 and has_stack:
 				stacked_observed_high_levels = true
+			var furn_cnt: int = 0
+			var frame_cnt: int = 0
+			for rec in spawner.last_spawn_records:
+				if bool(rec.get("is_wall_mounted", false)):
+					frame_cnt += 1
+					wall_frames_observed_high_levels = true
+				else:
+					furn_cnt += 1
+			assert_eq(furn_cnt, int(expected_comp["furniture"]), "Spawner furniture count L%d iter %d" % [lvl, iter])
+			assert_eq(frame_cnt, int(expected_comp["frames"]), "Spawner frame count L%d iter %d" % [lvl, iter])
 
-	assert_true(stacked_observed_high_levels, "Natural stacking observed in Levels 4-5")
+	assert_true(stacked_observed_high_levels, "Natural stacking observed in high levels")
+	assert_true(wall_frames_observed_high_levels, "Wall frames spawned in Levels 6-10")
 
 	host.queue_free()
 	await process_frame
@@ -219,7 +266,7 @@ func test_jittered_grid_fallback() -> bool:
 	var host := Node2D.new()
 	root.add_child(host)
 
-	# Case 1: Force fallback in standard Room 2 bounds with max_attempts = 1
+	# Case 1: Force fallback in standard Room 2 bounds with max_attempts = 1 (L5 & L10 with frames)
 	var spawner := Room2Spawner.new()
 	spawner.auto_spawn_on_ready = false
 	spawner.object_scene = PROP_SCENE
@@ -228,8 +275,16 @@ func test_jittered_grid_fallback() -> bool:
 
 	for iter in range(10):
 		spawner.spawn_level_objects(5, spawner.player_spawn_position)
-		assert_true(spawner.last_spawn_used_fallback, "Fallback triggered iter %d" % iter)
+		assert_true(spawner.last_spawn_used_fallback, "Fallback triggered L5 iter %d" % iter)
 		_validate_grounded_spatial_invariants(spawner, 5, iter)
+
+	var any_l10_fallback: bool = false
+	for iter in range(10):
+		spawner.spawn_level_objects(10, spawner.player_spawn_position)
+		if spawner.last_spawn_used_fallback:
+			any_l10_fallback = true
+		_validate_grounded_spatial_invariants(spawner, 10, iter)
+	assert_true(any_l10_fallback, "Fallback triggered in at least one L10 max_attempts=1 run")
 
 	# Case 2: Wide room dimensions with max_attempts = 1
 	var large_spawner := Room2Spawner.new()
@@ -360,45 +415,78 @@ func test_all_gameplay_level_scenes_and_physics() -> bool:
 			if player and mt_node:
 				assert_true(mt_node.get_index() > player.get_index(), "MeasureTool draws in front of Player L%d" % lvl)
 
-			# Record all item positions before stepping 10 physics frames (verify ZERO falling/floating!)
+			if player:
+				_assert_strict_z_order(level, player, lvl, "initial")
+
+			# Record Room 2 items + wall frames immediately, then settle 1 frame + step 60 physics frames
+			var wall_script := preload("res://script/wall_frame_item.gd")
 			var all_items_before: Array[Node] = level.find_children("*", "InteractiveItem", true, false)
-			var pre_physics_pos: Dictionary[int, Vector2] = {}
+			var pre_physics_r2: Dictionary[int, Vector2] = {}
 			for n in all_items_before:
 				var it := n as InteractiveItem
 				if it and it.visible and not it.is_queued_for_deletion():
-					pre_physics_pos[it.get_instance_id()] = it.global_position
-					assert_eq(it.collision_layer, 2, "InteractiveItem uses Layer 2 L%d %s" % [lvl, it.item_id])
-					assert_eq(it.sync_to_physics, true, "InteractiveItem matches main sync_to_physics == true L%d %s" % [lvl, it.item_id])
-					if player:
-						assert_eq(it.get_parent(), level, "InteractiveItem is direct child of level L%d %s" % [lvl, it.item_id])
-						assert_true(it.get_index() < player.get_index(), "InteractiveItem renders behind Player L%d %s" % [lvl, it.item_id])
+					var is_wall: bool = is_instance_of(it, wall_script)
+					assert_eq(it.collision_layer, 4 if is_wall else 2, "InteractiveItem collision_layer L%d %s" % [lvl, it.item_id])
+					assert_eq(it.sync_to_physics, false if is_wall else true, "InteractiveItem sync_to_physics L%d %s" % [lvl, it.item_id])
+					if it.home_room == 2 or is_wall:
+						pre_physics_r2[it.get_instance_id()] = it.global_position
 					if it.home_room == 2:
 						assert_eq(it.player, player, "Room 2 item resolves Player cleanly L%d %s" % [lvl, it.item_id])
 
-			for _pf in range(10):
+			await physics_frame
+			_assert_room1_clean_and_mirrorable(level, lvl)
+			var settled_pos: Dictionary[int, Vector2] = {}
+			for n in all_items_before:
+				var it := n as InteractiveItem
+				if it and it.visible and not it.is_queued_for_deletion():
+					settled_pos[it.get_instance_id()] = it.global_position
+
+			for _pf in range(60):
 				await physics_frame
 
 			for n in all_items_before:
 				var it := n as InteractiveItem
-				if it and pre_physics_pos.has(it.get_instance_id()):
-					var drift: float = it.global_position.distance_to(pre_physics_pos[it.get_instance_id()])
-					var max_drift: float = 2.0 if it.home_room == 1 else 1.0
-					assert_true(drift < max_drift, "Physics stability L%d %s (drift=%.3f)" % [lvl, it.item_id, drift])
+				if not it:
+					continue
+				if pre_physics_r2.has(it.get_instance_id()):
+					var drift_init: float = it.global_position.distance_to(pre_physics_r2[it.get_instance_id()])
+					assert_true(drift_init < 0.05, "Zero initial drift L%d %s (drift=%.3f)" % [lvl, it.item_id, drift_init])
+				if settled_pos.has(it.get_instance_id()):
+					var drift_60: float = it.global_position.distance_to(settled_pos[it.get_instance_id()])
+					assert_true(drift_60 < 0.05, "Zero 60-frame drift L%d %s (drift=%.3f)" % [lvl, it.item_id, drift_60])
 
 			# Mirror Room 2 items to Room 1 references and confirm 100% pass
 			var r1_map: Dictionary[String, InteractiveItem] = {}
 			var r2_list: Array[InteractiveItem] = []
+			var r1_furn: int = 0
+			var r1_frames: int = 0
+			var r2_furn: int = 0
+			var r2_frames: int = 0
 			for n in all_items_before:
 				var it := n as InteractiveItem
 				if not it or not it.visible or it.is_queued_for_deletion():
 					continue
+				var is_w: bool = is_instance_of(it, wall_script)
 				if it.home_room == 1:
 					r1_map[it.item_id.strip_edges()] = it
+					if is_w:
+						r1_frames += 1
+					else:
+						r1_furn += 1
 				else:
 					r2_list.append(it)
+					if is_w:
+						r2_frames += 1
+					else:
+						r2_furn += 1
 
+			var comp: Dictionary = LevelProgression.get_level_composition(lvl)
 			assert_eq(r1_map.size(), LevelProgression.get_total_objects(lvl), "L%d Room 1 item count" % lvl)
 			assert_eq(r2_list.size(), LevelProgression.get_total_objects(lvl), "L%d Room 2 item count" % lvl)
+			assert_eq(r1_furn, int(comp["furniture"]), "L%d Room 1 furniture count" % lvl)
+			assert_eq(r1_frames, int(comp["frames"]), "L%d Room 1 frame count" % lvl)
+			assert_eq(r2_furn, int(comp["furniture"]), "L%d Room 2 furniture count" % lvl)
+			assert_eq(r2_frames, int(comp["frames"]), "L%d Room 2 frame count" % lvl)
 
 			for r2 in r2_list:
 				var id: String = r2.item_id.strip_edges()
@@ -407,7 +495,8 @@ func test_all_gameplay_level_scenes_and_physics() -> bool:
 					var r1: InteractiveItem = r1_map[id]
 					r2.sync_to_physics = false
 					r2.global_position = Vector2(-r1.global_position.x, r1.global_position.y)
-					r2.sync_to_physics = true
+					if not is_instance_of(r2, wall_script):
+						r2.sync_to_physics = true
 
 			var expected_total: int = LevelProgression.get_total_objects(lvl)
 			var eval_perfect: Dictionary = checker.call("hitung_evaluasi")
@@ -436,6 +525,50 @@ func test_all_gameplay_level_scenes_and_physics() -> bool:
 				var eval_1_of_4: Dictionary = checker.call("hitung_evaluasi")
 				assert_eq(eval_1_of_4.get("status", ""), "game_over", "Main L3 1/4 game_over status")
 				assert_eq(eval_1_of_4.get("grade", ""), "sad", "Main L3 1/4 sad grade")
+
+			if lvl >= 6:
+				var min_frame_y_limit: float = -61.01 if lvl <= 7 else -65.01
+				var r1_min_y: float = INF
+				var r1_max_y: float = -INF
+				var r2_init_min_y: float = INF
+				var r2_init_max_y: float = -INF
+				for n in all_items_before:
+					var it := n as InteractiveItem
+					if not it or not it.visible or it.is_queued_for_deletion():
+						continue
+					if is_instance_of(it, wall_script):
+						assert_true(it.global_position.y >= min_frame_y_limit, "Wall frame climb-reachable L%d %s (y=%.2f)" % [lvl, it.item_id, it.global_position.y])
+						if it.home_room == 1:
+							r1_min_y = minf(r1_min_y, it.global_position.y)
+							r1_max_y = maxf(r1_max_y, it.global_position.y)
+						else:
+							r2_init_min_y = minf(r2_init_min_y, it.global_position.y)
+							r2_init_max_y = maxf(r2_init_max_y, it.global_position.y)
+				if lvl >= 7:
+					assert_true(r1_max_y - r1_min_y >= 15.0, "R1 wall frames varied height L%d (spread=%.2f)" % [lvl, r1_max_y - r1_min_y])
+
+			if lvl >= 5:
+				var min_r2_y_limit: float = -61.01 if lvl <= 7 else -65.01
+				var max_r2_spread: float = 0.0
+				for spawn_iter in range(15):
+					spawner.respawn_current_level()
+					_validate_grounded_spatial_invariants(spawner, lvl, spawn_iter + 1)
+					if player:
+						_assert_strict_z_order(level, player, lvl, "respawn_%d" % spawn_iter)
+					_assert_room2_no_frame_furniture_overlap(spawner, lvl, spawn_iter)
+					if lvl >= 6:
+						var s_min_y: float = INF
+						var s_max_y: float = -INF
+						for rec in spawner.last_spawn_records:
+							if bool(rec.get("is_wall_mounted", false)):
+								var fy: float = float((rec["pos"] as Vector2).y)
+								assert_true(fy >= min_r2_y_limit, "R2 respawn frame reachable L%d iter %d (y=%.2f)" % [lvl, spawn_iter, fy])
+								s_min_y = minf(s_min_y, fy)
+								s_max_y = maxf(s_max_y, fy)
+						if s_min_y < INF:
+							max_r2_spread = maxf(max_r2_spread, s_max_y - s_min_y)
+				if lvl >= 7:
+					assert_true(max_r2_spread >= 8.0, "R2 wall frames varied heights across respawns L%d (max_spread=%.2f)" % [lvl, max_r2_spread])
 
 	# Verify Retry from Game Over & Main Menu -> Level 1 reload lifecycle on Level03.tscn
 	if gm:
@@ -507,32 +640,31 @@ func test_all_gameplay_level_scenes_and_physics() -> bool:
 				if l2_phone:
 					l2_phone.call("show_screen", "level_select")
 					var lvl_buttons: Variant = l2_phone.get("level_buttons")
-					assert_true(lvl_buttons is Dictionary and (lvl_buttons as Dictionary).size() == 5, "LevelSelect exposes all 5 level buttons")
+					assert_true(lvl_buttons is Dictionary and (lvl_buttons as Dictionary).size() == 10, "LevelSelect exposes all 10 level buttons")
 					if lvl_buttons is Dictionary:
 						var btn_dict := lvl_buttons as Dictionary
 						assert_eq((btn_dict[1] as BaseButton).disabled, false, "Level 1 button unlocked")
 						assert_eq((btn_dict[2] as BaseButton).disabled, false, "Level 2 button unlocked after passing L1")
-						assert_eq((btn_dict[3] as BaseButton).disabled, true, "Level 3 button locked initially")
-						assert_eq((btn_dict[4] as BaseButton).disabled, true, "Level 4 button locked initially")
-						assert_eq((btn_dict[5] as BaseButton).disabled, true, "Level 5 button locked initially")
+						for locked_lvl in range(3, 11):
+							assert_eq((btn_dict[locked_lvl] as BaseButton).disabled, true, "Level %d button locked initially" % locked_lvl)
 
 				if gm:
-					gm.set("current_level", 5)
-					gm.set("unlocked_level", 5)
+					gm.set("current_level", 10)
+					gm.set("unlocked_level", 10)
 					gm.set("is_replaying", true)
-				var l5_packed := load("res://scene/level/Level05.tscn") as PackedScene
-				change_scene_to_packed(l5_packed)
+				var l10_packed := load("res://scene/level/Level10.tscn") as PackedScene
+				change_scene_to_packed(l10_packed)
 				await process_frame
 				await process_frame
-				var l5_scene := current_scene as Node2D
-				var l5_phone := l5_scene.get_node_or_null("Smartphone") if l5_scene else null
-				if l5_phone:
-					l5_phone.set("status_evaluasi", "success")
-					l5_phone.set("_level_unlocked_for_result", false)
-					l5_phone.set("_is_transitioning_level", false)
-					l5_phone.call("_on_btn_close_result_pressed")
-					var ls_screen := l5_phone.get("level_select_screen") as Control
-					assert_true(ls_screen != null and ls_screen.visible, "Passing final Level 5 opens LevelSelect screen")
+				var l10_scene := current_scene as Node2D
+				var l10_phone := l10_scene.get_node_or_null("Smartphone") if l10_scene else null
+				if l10_phone:
+					l10_phone.set("status_evaluasi", "success")
+					l10_phone.set("_level_unlocked_for_result", false)
+					l10_phone.set("_is_transitioning_level", false)
+					l10_phone.call("_on_btn_close_result_pressed")
+					var ls_screen := l10_phone.get("level_select_screen") as Control
+					assert_true(ls_screen != null and ls_screen.visible, "Passing final Level 10 opens LevelSelect screen")
 
 				if save_existed:
 					var fw := FileAccess.open("user://save_data.json", FileAccess.WRITE)
@@ -589,6 +721,7 @@ func test_main_mechanics_compatibility() -> bool:
 		assert_eq(item.player, player, "Main InteractiveItem resolves Player reference")
 		assert_eq(InteractiveItem.MAX_DISTANCE, 35.0, "Main InteractiveItem.MAX_DISTANCE == 35.0")
 
+		player.global_position = Vector2(maxf(item.global_position.x, 40.0), -16.0)
 		item.start_drag()
 		await process_frame
 		assert_eq(item.is_dragging, true, "Main InteractiveItem.start_drag sets is_dragging")
@@ -623,3 +756,213 @@ func test_main_mechanics_compatibility() -> bool:
 		gm.set("is_replaying", orig_replaying)
 
 	return true
+
+
+func test_wall_frame_mechanics() -> bool:
+	var gm := root.get_node_or_null("GameManager")
+	var orig_level: int = int(gm.get("current_level")) if gm else 1
+	var orig_replaying: bool = bool(gm.get("is_replaying")) if gm else false
+	if gm:
+		gm.set("current_level", 6)
+		gm.set("is_replaying", true)
+
+	var packed := load("res://scene/level/Level06.tscn") as PackedScene
+	change_scene_to_packed(packed)
+	await process_frame
+	await process_frame
+
+	var level := current_scene as Node2D
+	var player := level.get_node_or_null("Player") as CharacterBody2D
+	var checker := level.get_node_or_null("SymmetryChecker")
+	assert_true(level != null and player != null and checker != null, "Level06, Player, and SymmetryChecker loaded")
+
+	var r1_map: Dictionary[String, InteractiveItem] = {}
+	var r2_frames: Array[InteractiveItem] = []
+	var r2_floor_items: Array[InteractiveItem] = []
+	for n in level.find_children("*", "InteractiveItem", true, false):
+		var it := n as InteractiveItem
+		if not it or not it.visible or it.is_queued_for_deletion():
+			continue
+		if it.home_room == 1:
+			r1_map[it.item_id.strip_edges()] = it
+		elif is_instance_of(it, preload("res://script/wall_frame_item.gd")):
+			r2_frames.append(it)
+		else:
+			r2_floor_items.append(it)
+
+	assert_eq(r2_frames.size(), 1, "Level06 spawns 1 Room 2 WallFrameItem")
+	assert_eq(r2_floor_items.size(), 1, "Level06 spawns 1 Room 2 furniture item")
+
+	if r2_frames.size() > 0 and player:
+		var frame: InteractiveItem = r2_frames[0]
+		assert_eq(frame.collision_layer, 4, "WallFrameItem uses Layer 4")
+		assert_eq(player.collision_mask & frame.collision_layer, 0, "Player passes cleanly through WallFrameItem")
+
+		# Place frame at arbitrary wall locations and verify 0.0 px falling after 20 physics frames
+		frame.global_position = Vector2(100.0, -58.0)
+		for _pf in range(20):
+			await physics_frame
+		assert_true(absf(frame.global_position.y - (-58.0)) < 0.001, "WallFrameItem stays at y=-58 without gravity")
+
+		frame.global_position = Vector2(150.0, -36.0)
+		for _pf in range(20):
+			await physics_frame
+		assert_true(absf(frame.global_position.y - (-36.0)) < 0.001, "WallFrameItem stays at y=-36 without gravity")
+
+		assert_eq(frame.cari_lantai_terdekat(150.0, -45.0), -45.0, "WallFrameItem cari_lantai_terdekat returns input y")
+
+		# Verify WallFrameItem drag clamping keeps frames strictly inside walls, ceiling, and floor
+		var r2_hw: float = frame.call("get_visual_half_width")
+		var r2_hh: float = frame.get_visual_bottom_offset()
+		player.global_position = Vector2(250.0, -140.0)
+		frame.start_drag()
+		await physics_frame
+		assert_true(frame.global_position.x - r2_hw >= 8.0 - 0.01 and frame.global_position.x + r2_hw <= 200.0 + 0.01, "R2 frame clamped inside X walls top-right")
+		assert_true(frame.global_position.y - r2_hh >= -94.0 - 0.01 and frame.global_position.y + r2_hh <= -1.0 + 0.01, "R2 frame clamped below ceiling top-right")
+		frame.stop_drag()
+
+		player.global_position = Vector2(250.0, 50.0)
+		frame.start_drag()
+		await physics_frame
+		assert_true(frame.global_position.x - r2_hw >= 8.0 - 0.01 and frame.global_position.x + r2_hw <= 200.0 + 0.01, "R2 frame clamped inside X walls bottom-right")
+		assert_true(frame.global_position.y - r2_hh >= -94.0 - 0.01 and frame.global_position.y + r2_hh <= -1.0 + 0.01, "R2 frame clamped above floor bottom-right")
+		frame.stop_drag()
+
+		if r1_map.has("frame_01"):
+			var r1_frame: InteractiveItem = r1_map["frame_01"]
+			var r1_hw: float = r1_frame.call("get_visual_half_width")
+			var r1_hh: float = r1_frame.get_visual_bottom_offset()
+			player.global_position = Vector2(-250.0, -140.0)
+			r1_frame.start_drag()
+			await physics_frame
+			assert_true(r1_frame.global_position.x - r1_hw >= -199.0 - 0.01 and r1_frame.global_position.x + r1_hw <= -9.0 + 0.01, "R1 frame clamped inside X walls top-left")
+			assert_true(r1_frame.global_position.y - r1_hh >= -94.0 - 0.01 and r1_frame.global_position.y + r1_hh <= -1.0 + 0.01, "R1 frame clamped below ceiling top-left")
+			r1_frame.stop_drag()
+
+			player.global_position = Vector2(-250.0, 50.0)
+			r1_frame.start_drag()
+			await physics_frame
+			assert_true(r1_frame.global_position.x - r1_hw >= -199.0 - 0.01 and r1_frame.global_position.x + r1_hw <= -9.0 + 0.01, "R1 frame clamped inside X walls bottom-left")
+			assert_true(r1_frame.global_position.y - r1_hh >= -94.0 - 0.01 and r1_frame.global_position.y + r1_hh <= -1.0 + 0.01, "R1 frame clamped above floor bottom-left")
+			r1_frame.stop_drag()
+
+	# Mirror all Room 2 items including WallFrameItem and verify SymmetryChecker evaluates 2/2
+	var all_r2: Array[InteractiveItem] = []
+	all_r2.append_array(r2_floor_items)
+	for wf in r2_frames:
+		all_r2.append(wf)
+	for r2 in all_r2:
+		var id: String = r2.item_id.strip_edges()
+		if r1_map.has(id):
+			var r1: InteractiveItem = r1_map[id]
+			r2.sync_to_physics = false
+			r2.global_position = Vector2(-r1.global_position.x, r1.global_position.y)
+			if not is_instance_of(r2, preload("res://script/wall_frame_item.gd")):
+				r2.sync_to_physics = true
+
+	var eval_res: Dictionary = checker.call("hitung_evaluasi")
+	assert_eq(eval_res.get("status", ""), "success", "Level06 2/2 mirrored frame+furniture passes SymmetryChecker")
+	assert_eq(eval_res.get("text", ""), "BERHASIL!\n(2/2)", "Level06 SymmetryChecker counts 2/2 including wall frame")
+
+	paused = false
+	unload_current_scene()
+	await process_frame
+
+	# Isolated test: verify floor furniture never stacks onto a WallFrameItem positioned directly above
+	var host := Node2D.new()
+	root.add_child(host)
+	var test_frame := WALL_FRAME_SCENE.instantiate() as InteractiveItem
+	test_frame.position = Vector2(100.0, -55.0)
+	host.add_child(test_frame)
+	var test_stool := PROP_SCENE.instantiate() as InteractiveItem
+	test_stool.position = Vector2(100.0, -12.0)
+	host.add_child(test_stool)
+	await process_frame
+
+	var support_y: float = test_stool.cari_lantai_terdekat(test_frame.global_position.x, -70.0)
+	assert_true(absf(support_y - test_stool.floor_y) < 0.01, "Floor furniture ignores WallFrameItem when finding support")
+
+	host.queue_free()
+	await process_frame
+
+	if gm:
+		gm.set("current_level", orig_level)
+		gm.set("is_replaying", orig_replaying)
+
+	return true
+
+
+func _get_item_visual_rect(it: InteractiveItem) -> Rect2:
+	var spr := it.get_node_or_null("Sprite2D") as Sprite2D
+	var tex_sz: Vector2 = spr.texture.get_size() if (spr and spr.texture) else Vector2(14.0, 14.0)
+	var spr_sc: Vector2 = spr.scale if spr else Vector2.ONE
+	var spr_pos: Vector2 = spr.position if spr else Vector2.ZERO
+	var size := Vector2(tex_sz.x * absf(spr_sc.x), tex_sz.y * absf(spr_sc.y))
+	return Rect2(it.global_position + spr_pos - size * 0.5, size)
+
+
+func _assert_strict_z_order(level: Node2D, player: CharacterBody2D, lvl: int, context_label: String) -> void:
+	var wall_script := preload("res://script/wall_frame_item.gd")
+	var player_idx: int = player.get_index()
+	var max_frame_idx: int = -1
+	var min_floor_idx: int = 999999
+
+	for n in level.find_children("*", "InteractiveItem", true, false):
+		var it := n as InteractiveItem
+		if not it or not it.visible or it.is_queued_for_deletion():
+			continue
+		assert_eq(it.get_parent(), level, "Direct child of level L%d %s (%s)" % [lvl, it.item_id, context_label])
+		var idx: int = it.get_index()
+		assert_true(idx < player_idx, "Renders behind Player L%d %s (%s)" % [lvl, it.item_id, context_label])
+		if is_instance_of(it, wall_script):
+			max_frame_idx = maxi(max_frame_idx, idx)
+		else:
+			min_floor_idx = mini(min_floor_idx, idx)
+
+	if max_frame_idx >= 0 and min_floor_idx < 999999:
+		assert_true(max_frame_idx < min_floor_idx, "WallFrames render behind Floor items L%d (%s)" % [lvl, context_label])
+
+
+func _assert_room1_clean_and_mirrorable(level: Node2D, lvl: int) -> void:
+	var wall_script := preload("res://script/wall_frame_item.gd")
+	var r1_items: Array[InteractiveItem] = []
+	var r1_rects: Array[Rect2] = []
+	for n in level.find_children("*", "InteractiveItem", true, false):
+		var it := n as InteractiveItem
+		if not it or not it.visible or it.is_queued_for_deletion() or it.home_room != 1:
+			continue
+		var rect: Rect2 = _get_item_visual_rect(it)
+		r1_items.append(it)
+		r1_rects.append(rect)
+
+		var mirror_x: float = -it.global_position.x
+		if is_instance_of(it, wall_script):
+			var hw: float = rect.size.x * 0.5
+			var hh: float = rect.size.y * 0.5
+			assert_true(mirror_x >= 8.0 + hw + 1.0 - 0.01 and mirror_x <= 200.0 - hw - 1.0 + 0.01, "R1 frame mirror X in drag bounds L%d %s" % [lvl, it.item_id])
+			assert_true(it.global_position.y >= -96.0 + hh + 2.0 - 0.01 and it.global_position.y <= -hh - 1.0 + 0.01, "R1 frame mirror Y in drag bounds L%d %s" % [lvl, it.item_id])
+		else:
+			assert_true(mirror_x >= 11.0 - 0.01 and mirror_x <= 193.0 + 0.01, "R1 furniture mirror X in drag bounds L%d %s" % [lvl, it.item_id])
+
+	for i in range(r1_items.size()):
+		for j in range(i + 1, r1_items.size()):
+			var a: Rect2 = r1_rects[i]
+			var b: Rect2 = r1_rects[j]
+			var h_ov: float = minf(a.end.x, b.end.x) - maxf(a.position.x, b.position.x)
+			var v_ov: float = minf(a.end.y, b.end.y) - maxf(a.position.y, b.position.y)
+			assert_true(not (h_ov > 0.5 and v_ov > 0.5), "No R1 visual overlap L%d (%s vs %s)" % [lvl, r1_items[i].item_id, r1_items[j].item_id])
+
+
+func _assert_room2_no_frame_furniture_overlap(spawner: Room2Spawner, lvl: int, iter: int) -> void:
+	var frames: Array[Dictionary] = []
+	var furns: Array[Dictionary] = []
+	for rec in spawner.last_spawn_records:
+		if bool(rec.get("is_wall_mounted", false)):
+			frames.append(rec)
+		else:
+			furns.append(rec)
+	for f in frames:
+		for g in furns:
+			var h_ov: float = minf(float(f["right"]), float(g["right"])) - maxf(float(f["left"]), float(g["left"]))
+			var v_ov: float = minf(float(f["bottom"]), float(g["bottom"])) - maxf(float(f["top"]), float(g["top"]))
+			assert_true(not (h_ov > 0.5 and v_ov > 0.5), "No R2 frame vs furniture overlap L%d iter %d (%s vs %s)" % [lvl, iter, str(f["item_id"]), str(g["item_id"])])

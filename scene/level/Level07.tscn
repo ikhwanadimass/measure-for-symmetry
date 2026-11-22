@@ -1,0 +1,73 @@
+[gd_scene format=4]
+
+[ext_resource type="PackedScene" path="res://scene/level/BaseLevel.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://cxe57ammajut3" path="res://script/interactive_item.gd" id="2_item"]
+[ext_resource type="Texture2D" path="res://asset/tileseet/CartoonRooms/separate images/coffe_table_1.png" id="3_coffeetable"]
+[ext_resource type="Script" path="res://script/wall_frame_item.gd" id="4_frame_script"]
+[ext_resource type="Texture2D" uid="uid://djd7nujp0nmvv" path="res://asset/tileseet/CartoonRooms/tileset_v1.png" id="5_tileset"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_coffeetable"]
+size = Vector2(30, 11)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame1"]
+atlas = ExtResource("5_tileset")
+region = Rect2(37, 70, 14, 13)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_frame1"]
+size = Vector2(21, 17)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_frame2"]
+atlas = ExtResource("5_tileset")
+region = Rect2(53, 70, 14, 10)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_frame2"]
+size = Vector2(21, 13)
+
+[node name="Level07" instance=ExtResource("1_base")]
+
+[node name="Room2Spawner" parent="." index="3"]
+level_override = 7
+
+[node name="CoffeTable_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-112, -5.76)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "coffe_table_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="CoffeTable_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("3_coffeetable")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CoffeTable_Room1"]
+shape = SubResource("RectangleShape2D_coffeetable")
+one_way_collision = true
+
+[node name="Frame1_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-150, -59)
+collision_layer = 4
+collision_mask = 0
+input_pickable = true
+script = ExtResource("4_frame_script")
+item_id = "frame_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="Frame1_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = SubResource("AtlasTexture_frame1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Frame1_Room1"]
+shape = SubResource("RectangleShape2D_frame1")
+
+[node name="Frame2_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-64, -38)
+collision_layer = 4
+collision_mask = 0
+input_pickable = true
+script = ExtResource("4_frame_script")
+item_id = "frame_02"
+
+[node name="Sprite2D" type="Sprite2D" parent="Frame2_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = SubResource("AtlasTexture_frame2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Frame2_Room1"]
+shape = SubResource("RectangleShape2D_frame2")

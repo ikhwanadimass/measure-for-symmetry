@@ -27,6 +27,11 @@ var level_scenes: Dictionary = {
 	3: "res://scene/level/Level03.tscn",
 	4: "res://scene/level/Level04.tscn",
 	5: "res://scene/level/Level05.tscn",
+	6: "res://scene/level/Level06.tscn",
+	7: "res://scene/level/Level07.tscn",
+	8: "res://scene/level/Level08.tscn",
+	9: "res://scene/level/Level09.tscn",
+	10: "res://scene/level/Level10.tscn",
 }
 
 func _ready() -> void:
