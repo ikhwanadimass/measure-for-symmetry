@@ -20,13 +20,34 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rvdje"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wn15r"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rvdje"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+expand_margin_left = 3.0
+expand_margin_right = 3.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qf7ya"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dcuan"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aa0wt"]
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fykk7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bxm7l"]
+bg_color = Color(0.60038817, 0.60038817, 0.60038817, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
 
 [node name="Smartphone" type="CanvasLayer" unique_id=331973353]
 process_mode = 3
@@ -72,6 +93,7 @@ grow_vertical = 2
 texture = ExtResource("1_ubnks")
 
 [node name="MainMenu" type="VBoxContainer" parent="PhoneContainer/PhoneFrame" unique_id=1077471627]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -197,6 +219,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Keluar"
 
 [node name="PlayMenu" type="VBoxContainer" parent="PhoneContainer/PhoneFrame" unique_id=1300029964]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -540,7 +563,6 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Level 1"
 
 [node name="ResultScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1859886185]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -595,19 +617,114 @@ anchors_preset = 13
 anchor_left = 0.5
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -24.0
+offset_left = -25.0
 offset_top = 91.0
-offset_right = 22.0
-offset_bottom = 91.0
+offset_right = 23.0
+offset_bottom = 77.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
-theme_override_styles/normal = SubResource("StyleBoxEmpty_wn15r")
+theme_override_styles/normal = SubResource("StyleBoxFlat_rvdje")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_qf7ya")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_dcuan")
+theme_override_styles/hover = SubResource("StyleBoxFlat_aa0wt")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_fykk7")
 text = "Tutup"
+
+[node name="SettingsScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=314159265]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SettingsBG" type="TextureRect" parent="PhoneContainer/PhoneFrame/SettingsScreen" unique_id=314159266]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -125.0
+offset_right = 75.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_45wmf")
+
+[node name="LabelTitle" type="Label" parent="PhoneContainer/PhoneFrame/SettingsScreen" unique_id=314159267]
+layout_mode = 0
+offset_left = -34.0
+offset_top = -101.0
+offset_right = 74.0
+offset_bottom = -78.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "PENGATURAN"
+
+[node name="SettingsContainer" type="VBoxContainer" parent="PhoneContainer/PhoneFrame/SettingsScreen" unique_id=314159268]
+layout_mode = 0
+offset_left = -37.0
+offset_top = -58.0
+offset_right = 83.0
+offset_bottom = 75.0
+theme_override_constants/separation = 4
+
+[node name="LabelBGM" type="Label" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159269]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+text = "Volume Musik: 100%"
+
+[node name="SliderBGM" type="HSlider" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159270]
+layout_mode = 2
+value = 100.0
+
+[node name="LabelSFX" type="Label" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159271]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+text = "Volume SFX: 100%"
+
+[node name="SliderSFX" type="HSlider" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159272]
+layout_mode = 2
+value = 100.0
+
+[node name="ControlSpacer" type="Control" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159273]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="BtnFullscreen" type="Button" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159274]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_bxm7l")
+text = "Layar Penuh: OFF"
+
+[node name="BtnBackSettings" type="Button" parent="PhoneContainer/PhoneFrame/SettingsScreen" unique_id=314159275]
+layout_mode = 0
+offset_left = -68.0
+offset_top = 121.0
+offset_right = 21.0
+offset_bottom = 152.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jmhxe")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_vp8hl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_aa0wt")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_oob2m")
+text = "← Kembali"
 
 [node name="HUDPhoneButton" type="TextureButton" parent="." unique_id=2044469315]
 anchors_preset = 3

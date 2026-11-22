@@ -3,6 +3,11 @@ extends Node
 # Batas toleransi ketepatan simetris (dalam piksel)
 const TOLERANSI: float = 8.0
 
+var skor_terakhir: float = 0.0
+
+func evaluasi() -> Dictionary:
+	return hitung_evaluasi()
+
 func hitung_evaluasi() -> Dictionary:
 	var all_items = get_parent().find_children("*", "InteractiveItem", true, false)
 	
@@ -18,6 +23,7 @@ func hitung_evaluasi() -> Dictionary:
 
 	var total_barang: int = items_ruang2.size()
 	if total_barang == 0:
+		skor_terakhir = 0.0
 		return {
 			"grade": "sad",
 			"status": "game_over",
@@ -44,6 +50,7 @@ func hitung_evaluasi() -> Dictionary:
 			berhasil_count += 1
 
 	var rasio: float = float(berhasil_count) / float(total_barang)
+	skor_terakhir = rasio * 100.0
 	
 	if rasio >= 0.8:
 		return {

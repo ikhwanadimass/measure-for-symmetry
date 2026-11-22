@@ -4,6 +4,9 @@ var bgm_player: AudioStreamPlayer = null
 var sfx_dict: Dictionary = {}
 var bgm_dict: Dictionary = {}
 
+var bgm_volume_pct: float = 100.0
+var sfx_volume_pct: float = 100.0
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	setup_bgm_player()
@@ -23,21 +26,21 @@ func load_audio_assets() -> void:
 	bgm_dict["home"] = load("res://asset/music/track 7.wav")
 	bgm_dict["game"] = load("res://asset/music/track 3.wav")
 	
-	# 2. SFX Langkah Kaki Foley (Vinyl/Lantai Ruangan - Padat & Jelas)
+	# 2. SFX Langkah Kaki Foley
 	sfx_dict["step_1"] = load("res://asset/Sound/400 Sounds Pack/Footsteps/foley_footstep_vinyl_1.wav")
 	sfx_dict["step_2"] = load("res://asset/Sound/400 Sounds Pack/Footsteps/foley_footstep_vinyl_2.wav")
 	sfx_dict["step_3"] = load("res://asset/Sound/400 Sounds Pack/Footsteps/foley_footstep_vinyl_3.wav")
 	sfx_dict["step_4"] = load("res://asset/Sound/400 Sounds Pack/Footsteps/foley_footstep_vinyl_4.wav")
 	
-	# 3. SFX Karakter (Lompat Desingan Angin / Swish & Mendarat Tubuh Manusia)
+	# 3. SFX Karakter
 	sfx_dict["jump"] = load("res://asset/Sound/400 Sounds Pack/Other/whoosh_1.wav")
 	sfx_dict["land"] = load("res://asset/Sound/400 Sounds Pack/Materials/clothing_thud.wav")
 	
-	# 4. SFX Perabot (Gesek Kayu & Lepas Kayu)
+	# 4. SFX Perabot
 	sfx_dict["drag"] = load("res://asset/Sound/96 Extra SFX/wood_scrape_1.wav")
 	sfx_dict["drop"] = load("res://asset/Sound/96 Extra SFX/wood_on_wood.wav")
 	
-	# 5. SFX UI & HP (Klik Taktil Halus & Suara Lembut)
+	# 5. SFX UI & HP
 	sfx_dict["click"] = load("res://asset/Sound/96 Extra SFX/light_switch_on.wav")
 	sfx_dict["phone"] = load("res://asset/Sound/400 Sounds Pack/Other/whoosh_1.wav")
 	sfx_dict["phone_close"] = load("res://asset/Sound/96 Extra SFX/light_switch_off.wav")
@@ -45,10 +48,21 @@ func load_audio_assets() -> void:
 	sfx_dict["door"] = load("res://asset/Sound/96 Extra SFX/wood_creak_1.wav")
 	sfx_dict["note"] = load("res://asset/Sound/96 Extra SFX/page_turn.wav")
 	
-	# 6. SFX Evaluasi (Melodi Xylophone Kayu Merdu & Enak Didengar)
+	# 6. SFX Evaluasi
 	sfx_dict["win"] = load("res://asset/Sound/400 Sounds Pack/Musical Effects/xylophone_level_complete.wav")
 	sfx_dict["medium"] = load("res://asset/Sound/400 Sounds Pack/Musical Effects/xylophone_chime_positive.wav")
 	sfx_dict["game_over"] = load("res://asset/Sound/400 Sounds Pack/Musical Effects/xylophone_defeated.wav")
+
+func set_bgm_volume(pct: float) -> void:
+	bgm_volume_pct = clamp(pct, 0.0, 100.0)
+	if bgm_player:
+		if bgm_volume_pct <= 0.0:
+			bgm_player.volume_db = -80.0
+		else:
+			bgm_player.volume_db = -18.0 + linear_to_db(bgm_volume_pct / 100.0)
+
+func set_sfx_volume(pct: float) -> void:
+	sfx_volume_pct = clamp(pct, 0.0, 100.0)
 
 func play_bgm(track_key: String) -> void:
 	if not bgm_dict.has(track_key): return
@@ -68,6 +82,7 @@ func play_footstep() -> void:
 	play_sfx("step_%d" % idx, 3.0, randf_range(0.95, 1.05))
 
 func play_sfx(sfx_key: String, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
+	if sfx_volume_pct <= 0.0: return
 	if not sfx_dict.has(sfx_key): return
 	var stream = sfx_dict[sfx_key] as AudioStream
 	if not stream: return
@@ -85,6 +100,8 @@ func play_sfx(sfx_key: String, volume_db: float = 0.0, pitch_scale: float = 1.0)
 			"win": final_vol = -2.0
 			"medium": final_vol = -2.0
 			"game_over": final_vol = -2.0
+	
+	final_vol += linear_to_db(sfx_volume_pct / 100.0)
 		
 	var player = AudioStreamPlayer.new()
 	player.stream = stream
