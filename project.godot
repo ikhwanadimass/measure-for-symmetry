@@ -17,7 +17,7 @@ config/main_scene="res://scenes/level_01/Level01.tscn"
 
 [autoload]
 
-GameManager="*res://scripts/GameManager.gd"
+GameManager="*res://script/game_manager.gd"
 
 [display]
 

@@ -86,13 +86,13 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="BtnContinue" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=661747123]
+[node name="BtnPlay" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=661747123]
 layout_mode = 2
 texture_normal = ExtResource("2_6rqoo")
 texture_hover = ExtResource("3_45wmf")
 texture_focused = ExtResource("3_45wmf")
 
-[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnContinue" unique_id=1904495031]
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnPlay" unique_id=1904495031]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -106,15 +106,15 @@ offset_bottom = 11.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-text = "Lanjutkan"
+text = "Mulai"
 
-[node name="BtnLevelSelect" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=1803188663]
+[node name="BtnTutorial" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=1803188663]
 layout_mode = 2
 texture_normal = ExtResource("2_6rqoo")
 texture_hover = ExtResource("3_45wmf")
 texture_focused = ExtResource("3_45wmf")
 
-[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnLevelSelect" unique_id=368150082]
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnTutorial" unique_id=368150082]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -128,15 +128,15 @@ offset_bottom = 11.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-text = "Pilih Level"
+text = "Tutorial"
 
-[node name="BtnFinish" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=104468363]
+[node name="BtnLoadProgress" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=104468363]
 layout_mode = 2
 texture_normal = ExtResource("2_6rqoo")
 texture_hover = ExtResource("3_45wmf")
 texture_focused = ExtResource("3_45wmf")
 
-[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnFinish" unique_id=1160345388]
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnLoadProgress" unique_id=1160345388]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -150,29 +150,7 @@ offset_bottom = 11.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-text = "Selesaikan Misi"
-
-[node name="BtnNotes" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=1878988270]
-layout_mode = 2
-texture_normal = ExtResource("2_6rqoo")
-texture_hover = ExtResource("3_45wmf")
-texture_focused = ExtResource("3_45wmf")
-
-[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnNotes" unique_id=420417699]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -59.0
-offset_top = -11.5
-offset_right = 59.0
-offset_bottom = 11.5
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-text = "Catatan"
+text = "Load Progress"
 
 [node name="BtnSettings" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=619410528]
 layout_mode = 2
@@ -194,10 +172,134 @@ offset_bottom = 11.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-text = "Pengaturan"
+text = "Setting"
+
+[node name="BtnQuit" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=591529192]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnQuit" unique_id=542959615]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Keluar"
+
+[node name="PlayMenu" type="VBoxContainer" parent="PhoneContainer/PhoneFrame" unique_id=1300029964]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -68.0
+offset_top = -121.0
+offset_right = 72.0
+offset_bottom = 59.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="BtnContinueGame" type="TextureButton" parent="PhoneContainer/PhoneFrame/PlayMenu" unique_id=1473397185]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Lanjutkan" type="Label" parent="PhoneContainer/PhoneFrame/PlayMenu/BtnContinueGame" unique_id=117448439]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Mulai"
+
+[node name="BtnNewGame" type="TextureButton" parent="PhoneContainer/PhoneFrame/PlayMenu" unique_id=1211364293]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Mulai Baru" type="Label" parent="PhoneContainer/PhoneFrame/PlayMenu/BtnNewGame" unique_id=193097657]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Tutorial"
+
+[node name="BtnSelectLevel" type="TextureButton" parent="PhoneContainer/PhoneFrame/PlayMenu" unique_id=2143603231]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/PlayMenu/BtnSelectLevel" unique_id=1275056524]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Pilih Level"
+
+[node name="BtnBackPlay" type="TextureButton" parent="PhoneContainer/PhoneFrame/PlayMenu" unique_id=1799355014]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Kembali" type="Label" parent="PhoneContainer/PhoneFrame/PlayMenu/BtnBackPlay" unique_id=2016225204]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Setting"
 
 [node name="NotesScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=303345318]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -268,6 +370,91 @@ offset_bottom = -79.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
 text = "Note"
+
+[node name="NewGameScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1884328678]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NotesBG" type="TextureRect" parent="PhoneContainer/PhoneFrame/NewGameScreen" unique_id=1362552613]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -125.0
+offset_right = 75.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_45wmf")
+
+[node name="BtnBackNewGame" type="Button" parent="PhoneContainer/PhoneFrame/NewGameScreen" unique_id=1055681820]
+layout_mode = 0
+offset_left = -68.0
+offset_top = 121.0
+offset_right = 21.0
+offset_bottom = 152.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jmhxe")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_vp8hl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_aa0wt")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_oob2m")
+text = "← Kembali"
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/NewGameScreen" unique_id=1002109944]
+layout_mode = 0
+offset_left = -22.0
+offset_top = -100.0
+offset_right = 72.0
+offset_bottom = -77.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
+text = "GAME BARU"
+
+[node name="FormContainer" type="VBoxContainer" parent="PhoneContainer/PhoneFrame/NewGameScreen" unique_id=373755640]
+layout_mode = 0
+offset_left = -37.0
+offset_top = -58.0
+offset_right = 83.0
+offset_bottom = 68.0
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1515209964]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 10
+text = "Nama Save:"
+
+[node name="InputSaveName" type="LineEdit" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1217486438]
+layout_mode = 2
+text = "Player 1"
+placeholder_text = "Player 1"
+
+[node name="Label2" type="Label" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=178250900]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 10
+text = "Pilih Mode:"
+
+[node name="OptionMode" type="OptionButton" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1749947489]
+layout_mode = 2
+
+[node name="BtnStartNewGame" type="Button" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1503052246]
+layout_mode = 2
+text = "Mulai Main"
 
 [node name="LevelSelectScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1550897800]
 visible = false
