@@ -1,0 +1,138 @@
+[gd_scene format=4]
+
+[ext_resource type="PackedScene" path="res://scene/level/BaseLevel.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://cxe57ammajut3" path="res://script/interactive_item.gd" id="2_item"]
+[ext_resource type="Texture2D" path="res://asset/tileseet/CartoonRooms/separate images/night_stand_1.png" id="3_nightstand"]
+[ext_resource type="Texture2D" uid="uid://2pcnptbssxo2" path="res://asset/tileseet/CartoonRooms/separate images/chair_front.png" id="4_stool"]
+[ext_resource type="Texture2D" path="res://asset/tileseet/CartoonRooms/separate images/dresser_small_1.png" id="5_dresser"]
+[ext_resource type="Texture2D" uid="uid://c4gahe66ejfci" path="res://asset/tileseet/CartoonRooms/separate images/tree_pot_1.png" id="6_plant"]
+[ext_resource type="Texture2D" uid="uid://dbj0b3axsskyj" path="res://asset/tileseet/CartoonRooms/separate images/table_small_1.png" id="7_table"]
+[ext_resource type="Texture2D" uid="uid://dh458eqg536o6" path="res://asset/tileseet/CartoonRooms/separate images/lamp_big.png" id="8_lamp"]
+[ext_resource type="Texture2D" path="res://asset/tileseet/CartoonRooms/separate images/chair_side.png" id="9_chairside"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nightstand"]
+size = Vector2(18, 13)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stool"]
+size = Vector2(14, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dresser"]
+size = Vector2(24, 15)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_plant"]
+size = Vector2(19, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_table"]
+size = Vector2(30, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lamp"]
+size = Vector2(4, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_chairside"]
+size = Vector2(14, 4)
+
+[node name="Level04" instance=ExtResource("1_base")]
+
+[node name="Room2Spawner" parent="." index="3"]
+level_override = 4
+
+[node name="Nightstand_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-178, -7)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "nightstand_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="Nightstand_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("3_nightstand")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Nightstand_Room1"]
+shape = SubResource("RectangleShape2D_nightstand")
+one_way_collision = true
+
+[node name="Stool_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-148, -11)
+input_pickable = true
+script = ExtResource("2_item")
+
+[node name="Sprite2D" type="Sprite2D" parent="Stool_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("4_stool")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stool_Room1"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_stool")
+one_way_collision = true
+
+[node name="Dresser_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-114, -8)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "dresser_small_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="Dresser_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("5_dresser")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Dresser_Room1"]
+shape = SubResource("RectangleShape2D_dresser")
+one_way_collision = true
+
+[node name="Plant_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-84, -15)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "plant_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="Plant_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("6_plant")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Plant_Room1"]
+position = Vector2(0.5, 0)
+shape = SubResource("RectangleShape2D_plant")
+one_way_collision = true
+
+[node name="Table_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-48, -9)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "table_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="Table_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("7_table")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Table_Room1"]
+shape = SubResource("RectangleShape2D_table")
+one_way_collision = true
+
+[node name="Lamp_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-178, -26.33)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "lamp_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="Lamp_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("8_lamp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Lamp_Room1"]
+shape = SubResource("RectangleShape2D_lamp")
+one_way_collision = true
+one_way_collision_margin = 4.0
+
+[node name="ChairSide_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-114, -26.05)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "chair_side_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="ChairSide_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("9_chairside")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ChairSide_Room1"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_chairside")
+one_way_collision = true

@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Measure For Symmetry"
-run/main_scene="uid://cnwj0okn3bjcg"
+run/main_scene="res://scene/ui/loading_screen.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/bg_color=Color(0.0784314, 0.0823529, 0.117647, 1)
 boot_splash/show_image=false
@@ -20,7 +20,7 @@ config/main_scene="res://scene/ui/loading_screen.tscn"
 [autoload]
 
 GameManager="*res://script/game_manager.gd"
-AudioManager="*uid://clck258w3loi2"
+AudioManager="*res://script/audio_manager.gd"
 
 [display]
 

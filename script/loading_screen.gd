@@ -1,6 +1,6 @@
 extends Control
 
-@export var target_scene_path: String = "res://scene/Level01.tscn"
+@export var target_scene_path: String = "res://scene/level/Level01.tscn"
 @export var fps: float = 24.0 # Kecepatan animasi loading (frame per detik)
 @export var min_display_time: float = 2.5 # Waktu minimal animasi tayang (detik)
 
