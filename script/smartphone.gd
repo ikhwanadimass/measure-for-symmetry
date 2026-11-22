@@ -41,7 +41,6 @@ const EMOJI_SAD = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E29.
 @onready var slider_bgm: HSlider = $PhoneContainer/PhoneFrame.get_node_or_null("SettingsScreen/SettingsContainer/SliderBGM")
 @onready var label_sfx_val: Label = $PhoneContainer/PhoneFrame.get_node_or_null("SettingsScreen/SettingsContainer/LabelSFX")
 @onready var slider_sfx: HSlider = $PhoneContainer/PhoneFrame.get_node_or_null("SettingsScreen/SettingsContainer/SliderSFX")
-@onready var btn_fullscreen: Button = $PhoneContainer/PhoneFrame.get_node_or_null("SettingsScreen/SettingsContainer/BtnFullscreen")
 @onready var btn_back_settings: Button = $PhoneContainer/PhoneFrame.get_node_or_null("SettingsScreen/BtnBackSettings")
 
 # Tombol Menu Utama Awal
@@ -101,6 +100,9 @@ var _level_unlocked_for_result: bool = false
 var level_buttons: Dictionary = {}
 var is_handling_result: bool = false
 
+var level_scroll: ScrollContainer = null
+var level_grid: GridContainer = null
+
 func is_in_tutorial() -> bool:
 	if owner and owner.name == "LevelTutorial":
 		return true
@@ -115,7 +117,7 @@ func _ready() -> void:
 	setup_in_game_menu_otomatis()
 	setup_settings_screen()
 	hubungkan_semua_tombol()
-	hubungkan_tombol_level_tscn()
+	setup_level_select_otomatis()
 	setup_pilihan_mode_rapi()
 	setup_meteran_label()
 	
@@ -225,6 +227,10 @@ func setup_in_game_menu_otomatis() -> void:
 	in_game_menu.visible = false
 
 func setup_settings_screen() -> void:
+	var settings_container = $PhoneContainer/PhoneFrame.get_node_or_null("SettingsScreen/SettingsContainer")
+	if settings_container:
+		settings_container.visible = true
+
 	if slider_bgm:
 		slider_bgm.min_value = 0
 		slider_bgm.max_value = 100
@@ -237,12 +243,9 @@ func setup_settings_screen() -> void:
 		slider_sfx.step = 5
 		slider_sfx.value = 100
 		slider_sfx.value_changed.connect(_on_sfx_slider_changed)
-	if btn_fullscreen:
-		var is_fs = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN or DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-		btn_fullscreen.text = "Layar Penuh: ON" if is_fs else "Layar Penuh: OFF"
-		btn_fullscreen.pressed.connect(_toggle_fullscreen)
 	if btn_back_settings:
-		btn_back_settings.pressed.connect(_on_btn_back_settings_pressed)
+		if not btn_back_settings.pressed.is_connected(_on_btn_back_settings_pressed):
+			btn_back_settings.pressed.connect(_on_btn_back_settings_pressed)
 
 func _on_bgm_slider_changed(val: float) -> void:
 	if label_bgm_val: label_bgm_val.text = "Volume Musik: %d%%" % int(val)
@@ -255,18 +258,6 @@ func _on_sfx_slider_changed(val: float) -> void:
 	var am = get_node_or_null("/root/AudioManager")
 	if am and am.has_method("set_sfx_volume"):
 		am.set_sfx_volume(val)
-
-func _toggle_fullscreen() -> void:
-	var am = get_node_or_null("/root/AudioManager")
-	if am: am.play_sfx("click")
-	
-	var is_fs = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN or DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
-	if is_fs:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		if btn_fullscreen: btn_fullscreen.text = "Layar Penuh: OFF"
-	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-		if btn_fullscreen: btn_fullscreen.text = "Layar Penuh: ON"
 
 func _on_btn_back_settings_pressed() -> void:
 	var am = get_node_or_null("/root/AudioManager")
@@ -285,7 +276,6 @@ func setup_pilihan_mode_rapi() -> void:
 	option_mode.add_item("Mode Sulit", 2)
 	option_mode.add_item("Mode Bebas", 3)
 	
-	# Mengaktifkan deskripsi mode secara rapi (font 9px agar pas di kertas)
 	if form_container:
 		label_mode_desc = form_container.get_node_or_null("LabelModeDesc")
 		if not label_mode_desc:
@@ -342,7 +332,6 @@ func hubungkan_semua_tombol() -> void:
 		show_screen("play_menu")
 	)
 	
-	# Layar Muat Game (Dinamis)
 	if btn_back_load: btn_back_load.pressed.connect(func():
 		var am = get_node_or_null("/root/AudioManager")
 		if am: am.play_sfx("click")
@@ -359,43 +348,95 @@ func hubungkan_semua_tombol() -> void:
 	if btn_close_result: btn_close_result.pressed.connect(_on_btn_close_result_pressed)
 	if btn_result_main_menu: btn_result_main_menu.pressed.connect(_on_btn_result_main_menu_pressed)
 
-# ================= HUBUNGKAN TOMBOL LEVEL DARI TSCN =================
-func hubungkan_tombol_level_tscn() -> void:
-	level_buttons.clear()
-	if not level_select_screen:
-		return
+# =========# ================= GENERATOR TOMBOL PILIH LEVEL PERSIS MENU UTAMA =================
+	var level_scroll: ScrollContainer = null
+var level_list_container: VBoxContainer = null
+
+func setup_level_select_otomatis() -> void:
+	if not level_select_screen: return
+	
+	# Sembunyikan tombol lama bawaan tscn jika ada
+	var old_btn = level_select_screen.get_node_or_null("BtnLevel1")
+	if old_btn:
+		old_btn.visible = false
 		
-	var buttons = level_select_screen.find_children("BtnLevel*", "BaseButton", true, false)
-	for btn in buttons:
-		var nomor_str = btn.name.replace("BtnLevel", "").strip_edges()
-		if nomor_str.is_valid_int():
-			var lvl_num = nomor_str.to_int()
-			level_buttons[lvl_num] = btn
+	if not level_scroll:
+		level_scroll = ScrollContainer.new()
+		level_scroll.name = "LevelScroll"
+		level_scroll.layout_mode = 0
+		level_scroll.offset_left = -50.0
+		level_scroll.offset_top = -65.0
+		level_scroll.offset_right = 60.0
+		level_scroll.offset_bottom = 115.0
+		level_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		level_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		
+		level_list_container = VBoxContainer.new()
+		level_list_container.name = "LevelListContainer"
+		level_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		level_list_container.add_theme_constant_override("separation", 10)
+		level_list_container.alignment = BoxContainer.ALIGNMENT_CENTER
+		
+		level_scroll.add_child(level_list_container)
+		level_select_screen.add_child(level_scroll)
+
+func update_level_select_buttons() -> void:
+	setup_level_select_otomatis()
+	if not level_list_container: return
+	
+	# Hapus daftar tombol level sebelumnya
+	for child in level_list_container.get_children():
+		child.queue_free()
+		
+	var gm = get_node_or_null("/root/GameManager")
+	var unlocked_level: int = int(gm.unlocked_level) if gm else 1
+	var total_levels: int = 10
+	
+	level_buttons.clear()
+	
+	# Menggunakan aset texture tombol yang sama persis dengan menu utama
+	var tex_normal = preload("res://asset/handphone/btn_normal.png")
+	var tex_selected = preload("res://asset/handphone/btn_selected.png")
+	
+	for lvl in range(1, total_levels + 1):
+		var btn = TextureButton.new()
+		btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		btn.texture_normal = tex_normal
+		btn.texture_hover = tex_selected
+		btn.texture_focused = tex_selected
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		
+		# Label teks di tengah tombol
+		var lbl = Label.new()
+		lbl.anchors_preset = Control.PRESET_FULL_RECT
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.add_theme_color_override("font_color", Color(0, 0, 0, 1))
+		
+		var is_unlocked: bool = (lvl <= unlocked_level)
+		btn.disabled = not is_unlocked
+		
+		if is_unlocked:
+			lbl.text = "Level %d" % lvl
+		else:
+			lbl.text = "Level %d" % lvl
+			btn.modulate = Color(0.5, 0.5, 0.5, 0.7)
 			
-			if not btn.pressed.is_connected(_on_level_btn_clicked.bind(lvl_num)):
-				btn.pressed.connect(_on_level_btn_clicked.bind(lvl_num))
+		btn.add_child(lbl)
+		
+		var target_lvl = lvl
+		btn.pressed.connect(func():
+			_on_level_btn_clicked(target_lvl)
+		)
+		
+		level_buttons[lvl] = btn
+		level_list_container.add_child(btn)
 
 func _on_level_btn_clicked(nomor_level: int) -> void:
 	var am = get_node_or_null("/root/AudioManager")
 	if am:
 		am.play_sfx("click")
 	_masuk_level_bersih(nomor_level)
-
-func update_level_select_buttons() -> void:
-	hubungkan_tombol_level_tscn()
-	
-	var gm = get_node_or_null("/root/GameManager")
-	var unlocked_level: int = int(gm.unlocked_level) if gm else 1
-
-	for lvl in level_buttons.keys():
-		var btn = level_buttons[lvl]
-		if not is_instance_valid(btn):
-			continue
-
-		var is_unlocked: bool = (lvl <= unlocked_level)
-		btn.disabled = not is_unlocked
-		btn.mouse_filter = Control.MOUSE_FILTER_STOP if is_unlocked else Control.MOUSE_FILTER_IGNORE
-		btn.modulate = Color(1, 1, 1, 1) if is_unlocked else Color(0.4, 0.4, 0.4, 0.6)
 # ====================================================================
 
 # ================= SISTEM DAFTAR SAVE DINAMIS (MUAT GAME) ===========
@@ -406,47 +447,91 @@ func _on_btn_load_progress_pressed() -> void:
 	show_screen("load_game")
 
 func update_load_screen_ui() -> void:
+	# Otomatis perlebar wadah scroll agar memenuhi area kertas HP
+	var save_scroll = $PhoneContainer/PhoneFrame.get_node_or_null("LoadGameScreen/SaveScroll")
+	if save_scroll:
+		save_scroll.offset_left = -45.0
+		save_scroll.offset_right = 66.0
+		save_scroll.offset_top = -65.0
+		save_scroll.offset_bottom = 115.0
+
 	if not save_list_container: return
+	save_list_container.add_theme_constant_override("separation", 8)
 	
-	# Hapus daftar item sebelumnya
 	for child in save_list_container.get_children():
 		child.queue_free()
 		
 	var gm = get_node_or_null("/root/GameManager")
 	var saves = gm.saves_list if gm else []
 	
-	# Jika belum ada save, tampilkan label keterangan
 	if saves.is_empty():
 		if label_no_save: label_no_save.visible = true
 		return
 		
 	if label_no_save: label_no_save.visible = false
 	
-	# Render setiap save yang pernah dibuat
 	for s in saves:
 		var s_id: String = str(s.get("id", ""))
 		var s_name: String = str(s.get("save_name", "Player"))
 		var s_lvl: int = int(s.get("unlocked_level", 1))
 		var s_mode: int = int(s.get("current_mode", 1))
-		var mode_name = "Biasa"
+		var mode_name = "Normal"
 		if gm and gm.mode_data.has(s_mode):
-			mode_name = gm.mode_data[s_mode].get("name", "Biasa").replace("Mode ", "")
+			mode_name = gm.mode_data[s_mode].get("name", "Normal").replace("Mode ", "")
 			
-		var row = HBoxContainer.new()
-		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_theme_constant_override("separation", 3)
-		
-		# Tombol Profil Save
-		var btn = Button.new()
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.add_theme_font_size_override("font_size", 9)
-		btn.add_theme_color_override("font_color", Color(0, 0, 0, 1))
-		
 		var active_mark = " ★" if (gm and gm.active_save_id == s_id) else ""
-		btn.text = "%s (Lv %d - %s)%s" % [s_name, s_lvl, mode_name, active_mark]
-		
 		var target_id = s_id
-		btn.pressed.connect(func():
+		
+		# 1. Panel Kotak (Background Putih, Border Hitam, Ukuran Lebih Besar & Lega)
+		var card = PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.custom_minimum_size = Vector2(120, 68)
+		
+		var style_normal = StyleBoxFlat.new()
+		style_normal.bg_color = Color(1.0, 1.0, 1.0, 1.0)
+		style_normal.border_color = Color(0.0, 0.0, 0.0, 1.0)
+		style_normal.set_border_width_all(1)
+		style_normal.set_corner_radius_all(4)
+		style_normal.content_margin_left = 8
+		style_normal.content_margin_right = 8
+		style_normal.content_margin_top = 6
+		style_normal.content_margin_bottom = 6
+		
+		var style_hover = StyleBoxFlat.new()
+		style_hover.bg_color = Color(0.88, 0.88, 0.88, 1.0)
+		style_hover.border_color = Color(0.0, 0.0, 0.0, 1.0)
+		style_hover.set_border_width_all(1)
+		style_hover.set_corner_radius_all(4)
+		style_hover.content_margin_left = 8
+		style_hover.content_margin_right = 8
+		style_hover.content_margin_top = 6
+		style_hover.content_margin_bottom = 6
+		
+		card.add_theme_stylebox_override("panel", style_normal)
+		
+		# 2. Container Vertikal
+		var vbox = VBoxContainer.new()
+		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.add_theme_constant_override("separation", 4)
+		
+		# Baris 1: Nama Load (Font 11px) & Baris 2: Keterangan (Font 9px)
+		var btn_load = Button.new()
+		btn_load.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_load.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn_load.text = "%s%s\nLevel %d - %s" % [s_name, active_mark, s_lvl, mode_name]
+		btn_load.add_theme_font_size_override("font_size", 11)
+		btn_load.add_theme_color_override("font_color", Color(0, 0, 0, 1))
+		btn_load.add_theme_color_override("font_hover_color", Color(0, 0, 0, 1))
+		btn_load.add_theme_color_override("font_pressed_color", Color(0, 0, 0, 1))
+		btn_load.add_theme_color_override("font_focus_color", Color(0, 0, 0, 1))
+		
+		var empty_style = StyleBoxEmpty.new()
+		btn_load.add_theme_stylebox_override("normal", empty_style)
+		btn_load.add_theme_stylebox_override("pressed", empty_style)
+		btn_load.add_theme_stylebox_override("hover", empty_style)
+		btn_load.add_theme_stylebox_override("focus", empty_style)
+		
+		btn_load.pressed.connect(func():
 			var am = get_node_or_null("/root/AudioManager")
 			if am: am.play_sfx("click")
 			if gm:
@@ -454,24 +539,53 @@ func update_load_screen_ui() -> void:
 			show_screen("play_menu")
 			if btn_continue_game: btn_continue_game.visible = true
 		)
-		row.add_child(btn)
 		
-		# Tombol Hapus (X)
-		var del_btn = Button.new()
-		del_btn.custom_minimum_size = Vector2(18, 0)
-		del_btn.text = "X"
-		del_btn.add_theme_font_size_override("font_size", 9)
-		del_btn.add_theme_color_override("font_color", Color(0.8, 0.2, 0.2, 1))
-		del_btn.pressed.connect(func():
+		# Baris 3: Tombol Delete (Lebih nyaman diklik, tinggi 22px)
+		var btn_del = Button.new()
+		btn_del.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_del.custom_minimum_size = Vector2(0, 22)
+		btn_del.text = "Delete"
+		btn_del.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn_del.add_theme_font_size_override("font_size", 9)
+		btn_del.add_theme_color_override("font_color", Color(0.85, 0.15, 0.15, 1.0))
+		btn_del.add_theme_color_override("font_hover_color", Color(1.0, 0.0, 0.0, 1.0))
+		
+		var del_style_normal = StyleBoxFlat.new()
+		del_style_normal.bg_color = Color(0.96, 0.96, 0.96, 1.0)
+		del_style_normal.border_color = Color(0.65, 0.65, 0.65, 1.0)
+		del_style_normal.set_border_width_all(1)
+		del_style_normal.set_corner_radius_all(3)
+		
+		var del_style_hover = StyleBoxFlat.new()
+		del_style_hover.bg_color = Color(0.82, 0.82, 0.82, 1.0)
+		del_style_hover.border_color = Color(0.2, 0.2, 0.2, 1.0)
+		del_style_hover.set_border_width_all(1)
+		del_style_hover.set_corner_radius_all(3)
+		
+		btn_del.add_theme_stylebox_override("normal", del_style_normal)
+		btn_del.add_theme_stylebox_override("hover", del_style_hover)
+		btn_del.add_theme_stylebox_override("pressed", del_style_hover)
+		btn_del.add_theme_stylebox_override("focus", del_style_normal)
+		
+		btn_del.pressed.connect(func():
 			var am = get_node_or_null("/root/AudioManager")
 			if am: am.play_sfx("click")
 			if gm:
 				gm.delete_save_by_id(target_id)
 			update_load_screen_ui()
 		)
-		row.add_child(del_btn)
 		
-		save_list_container.add_child(row)
+		# Efek Saat Di-hover Menjadi Abu-abu
+		btn_load.mouse_entered.connect(func(): card.add_theme_stylebox_override("panel", style_hover))
+		btn_load.mouse_exited.connect(func(): card.add_theme_stylebox_override("panel", style_normal))
+		card.mouse_entered.connect(func(): card.add_theme_stylebox_override("panel", style_hover))
+		card.mouse_exited.connect(func(): card.add_theme_stylebox_override("panel", style_normal))
+		
+		vbox.add_child(btn_load)
+		vbox.add_child(btn_del)
+		card.add_child(vbox)
+		
+		save_list_container.add_child(card)
 # ====================================================================
 
 func _on_btn_play_pressed() -> void:
@@ -481,7 +595,6 @@ func _on_btn_play_pressed() -> void:
 	var gm = get_node_or_null("/root/GameManager")
 	var ada_save: bool = (gm != null) and (gm.has_save or not gm.saves_list.is_empty())
 	
-	# Tombol Lanjutkan & Pilih Level hanya muncul jika sudah punya save data
 	if btn_continue_game:
 		btn_continue_game.visible = ada_save
 	if btn_select_level:
@@ -495,7 +608,11 @@ func _on_btn_continue_game_pressed() -> void:
 	var gm = get_node_or_null("/root/GameManager")
 	if gm and gm.has_save:
 		gm.load_from_disk()
-	mulai_permainan()
+		var target_lvl: int = gm.unlocked_level
+		if target_lvl <= 0: target_lvl = 1
+		_masuk_level_bersih(target_lvl)
+	else:
+		mulai_permainan()
 
 func _on_btn_new_game_pressed() -> void:
 	var am = get_node_or_null("/root/AudioManager")
@@ -585,7 +702,6 @@ func _on_btn_main_menu_pressed() -> void:
 	var tree := get_tree()
 	if tree:
 		tree.paused = false
-		# Jika sedang di LevelTutorial atau level lain, kembali ke Level 01 sebagai home scene
 		if tree.current_scene and tree.current_scene.scene_file_path != "res://scene/level/Level01.tscn":
 			tree.change_scene_to_file("res://scene/level/Level01.tscn")
 			return
@@ -652,7 +768,11 @@ func show_screen(screen_name: String) -> void:
 	if level_select_screen: level_select_screen.visible = (screen_name == "level_select")
 	if notes_screen: notes_screen.visible = (screen_name == "notes")
 	if in_game_menu: in_game_menu.visible = (screen_name == "in_game")
-	if settings_screen: settings_screen.visible = (screen_name == "settings")
+	if settings_screen: 
+		settings_screen.visible = (screen_name == "settings")
+		if screen_name == "settings":
+			var sc = settings_screen.get_node_or_null("SettingsContainer")
+			if sc: sc.visible = true
 	if result_screen: result_screen.visible = (screen_name == "result")
 	_atur_fokus_layar(screen_name)
 
@@ -672,17 +792,17 @@ func _atur_fokus_layar(screen_name: String) -> void:
 			if input_save_name: input_save_name.grab_focus()
 		"load_game":
 			if save_list_container and save_list_container.get_child_count() > 0:
-				var first_row = save_list_container.get_child(0)
-				if first_row and first_row.get_child_count() > 0:
-					first_row.get_child(0).grab_focus()
+				var first_card = save_list_container.get_child(0)
+				if first_card and first_card.get_child_count() > 0:
+					var vbox_child = first_card.get_child(0)
+					if vbox_child and vbox_child.get_child_count() > 0:
+						vbox_child.get_child(0).grab_focus()
 			elif btn_back_load:
 				btn_back_load.grab_focus()
 		"level_select":
 			var gm = get_node_or_null("/root/GameManager")
 			var unlocked: int = int(gm.unlocked_level) if gm else 1
-			var active_lvl: int = int(gm.current_level) if gm else 1
-			var preferred_lvl: int = clampi(active_lvl, 1, unlocked)
-			var focus_btn: Control = level_buttons.get(preferred_lvl, null)
+			var focus_btn: Control = level_buttons.get(unlocked, null)
 			if focus_btn and focus_btn.is_inside_tree() and not (focus_btn is BaseButton and focus_btn.disabled):
 				focus_btn.grab_focus()
 			elif btn_back_level_select and btn_back_level_select.is_inside_tree():
@@ -920,21 +1040,26 @@ func mulai_timer_ruang2() -> void:
 	
 	if durasi <= 0.0:
 		timer_berjalan = false
-		if timer_label: timer_label.text = "MODE BEBAS"
+		if timer_label:
+			timer_label.text = "MODE BEBAS"
+			timer_label.visible = true
 	else:
 		waktu_sisa = durasi
 		timer_berjalan = true
+		if timer_label:
+			timer_label.visible = true
 		update_timer_display()
 
 func reset_dan_hentikan_timer() -> void:
+	timer_berjalan = false
+	if timer_label:
+		timer_label.visible = false
+		
 	if is_in_tutorial():
-		timer_berjalan = false
-		if timer_label: timer_label.visible = false
 		return
 		
 	var gm = get_node_or_null("/root/GameManager")
 	var durasi = gm.get_mode_info()["waktu"] if gm else 120.0
-	timer_berjalan = false
 	if durasi <= 0.0:
 		if timer_label: timer_label.text = "MODE BEBAS"
 	else:
@@ -967,6 +1092,7 @@ func update_timer_display() -> void:
 		timer_label.add_theme_color_override("font_color", Color(0.0, 0.0, 0.0, 1.0))
 
 func kembalikan_ke_ruang1() -> void:
+	reset_dan_hentikan_timer()
 	if not get_tree() or not get_tree().current_scene: return
 	var player = get_tree().current_scene.find_child("Player", true, false)
 	if player:
@@ -1005,4 +1131,4 @@ func set_hud_visibilitas(tampil: bool) -> void:
 	if hud_phone_button:
 		hud_phone_button.visible = tampil
 	if timer_label:
-		timer_label.visible = tampil and not is_in_tutorial()
+		timer_label.visible = tampil and timer_berjalan and not is_in_tutorial()

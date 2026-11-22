@@ -44,6 +44,16 @@ border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0, 0, 0, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vp8hl"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oob2m"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rvdje"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 border_width_left = 1
@@ -64,14 +74,6 @@ border_width_bottom = 1
 border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fykk7"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bxm7l"]
-bg_color = Color(0.60038817, 0.60038817, 0.60038817, 0)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
 
 [node name="Smartphone" type="CanvasLayer" unique_id=331973353]
 process_mode = 3
@@ -420,6 +422,7 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
 text = "Note"
 
 [node name="NewGameScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1884328678]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -510,7 +513,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_mvcbh")
 text = "Mulai Main"
 
 [node name="LevelSelectScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1550897800]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -541,16 +543,19 @@ texture = ExtResource("4_45wmf")
 
 [node name="BtnBackLevelSelect" type="Button" parent="PhoneContainer/PhoneFrame/LevelSelectScreen" unique_id=485377776]
 layout_mode = 0
-offset_left = -68.0
+offset_left = -53.0
 offset_top = 121.0
 offset_right = 21.0
-offset_bottom = 152.0
+offset_bottom = 149.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 9
-theme_override_styles/normal = SubResource("StyleBoxEmpty_jmhxe")
+theme_override_styles/normal = SubResource("StyleBoxFlat_vp8hl")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_vp8hl")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_aa0wt")
+theme_override_styles/hover = SubResource("StyleBoxFlat_oob2m")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_oob2m")
 text = "← Kembali"
 
@@ -702,17 +707,18 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "PENGATURAN"
 
 [node name="SettingsContainer" type="VBoxContainer" parent="PhoneContainer/PhoneFrame/SettingsScreen" unique_id=314159268]
+visible = false
 layout_mode = 0
-offset_left = -37.0
-offset_top = -58.0
-offset_right = 83.0
-offset_bottom = 75.0
+offset_left = -49.0
+offset_top = -56.0
+offset_right = 91.0
+offset_bottom = 77.0
 theme_override_constants/separation = 4
 
 [node name="LabelBGM" type="Label" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159269]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 14
 text = "Volume Musik: 100%"
 
 [node name="SliderBGM" type="HSlider" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159270]
@@ -722,7 +728,7 @@ value = 100.0
 [node name="LabelSFX" type="Label" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159271]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 14
 text = "Volume SFX: 100%"
 
 [node name="SliderSFX" type="HSlider" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159272]
@@ -732,13 +738,6 @@ value = 100.0
 [node name="ControlSpacer" type="Control" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159273]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
-
-[node name="BtnFullscreen" type="Button" parent="PhoneContainer/PhoneFrame/SettingsScreen/SettingsContainer" unique_id=314159274]
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 10
-theme_override_styles/normal = SubResource("StyleBoxFlat_bxm7l")
-text = "Layar Penuh: OFF"
 
 [node name="BtnBackSettings" type="Button" parent="PhoneContainer/PhoneFrame/SettingsScreen" unique_id=314159275]
 layout_mode = 0
@@ -796,10 +795,10 @@ text = "MUAT GAME"
 
 [node name="SaveScroll" type="ScrollContainer" parent="PhoneContainer/PhoneFrame/LoadGameScreen" unique_id=451928004]
 layout_mode = 0
-offset_left = -40.0
-offset_top = -65.0
-offset_right = 80.0
-offset_bottom = 110.0
+offset_left = -36.0
+offset_top = -58.0
+offset_right = 84.0
+offset_bottom = 117.0
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
