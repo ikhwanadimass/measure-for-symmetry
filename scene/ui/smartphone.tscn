@@ -119,7 +119,6 @@ grow_vertical = 2
 texture = ExtResource("1_ubnks")
 
 [node name="MainMenu" type="VBoxContainer" parent="PhoneContainer/PhoneFrame" unique_id=1077471627]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -127,9 +126,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -68.0
-offset_top = -121.0
+offset_top = -120.0
 offset_right = 72.0
-offset_bottom = 59.0
+offset_bottom = 98.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
@@ -177,6 +176,28 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Tutorial"
+
+[node name="BtnRules" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=870931475]
+layout_mode = 2
+texture_normal = ExtResource("2_6rqoo")
+texture_hover = ExtResource("3_45wmf")
+texture_focused = ExtResource("3_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/MainMenu/BtnRules" unique_id=1092393926]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -59.0
+offset_top = -11.5
+offset_right = 59.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Aturan"
 
 [node name="BtnLoadProgress" type="TextureButton" parent="PhoneContainer/PhoneFrame/MainMenu" unique_id=104468363]
 layout_mode = 2
@@ -245,7 +266,6 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Keluar"
 
 [node name="PlayMenu" type="VBoxContainer" parent="PhoneContainer/PhoneFrame" unique_id=1300029964]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -283,6 +303,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Mulai"
 
 [node name="BtnNewGame" type="TextureButton" parent="PhoneContainer/PhoneFrame/PlayMenu" unique_id=1211364293]
+visible = false
 layout_mode = 2
 texture_normal = ExtResource("2_6rqoo")
 texture_hover = ExtResource("3_45wmf")
@@ -422,7 +443,6 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
 text = "Note"
 
 [node name="NewGameScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1884328678]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -513,6 +533,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_mvcbh")
 text = "Mulai Main"
 
 [node name="LevelSelectScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1550897800]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -833,6 +854,57 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_vp8hl")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_aa0wt")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_oob2m")
 text = "← Kembali"
+
+[node name="RulesScreen" type="Control" parent="PhoneContainer" unique_id=886978590]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="NotesBG" type="TextureRect" parent="PhoneContainer/RulesScreen" unique_id=1541735912]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -125.0
+offset_right = 75.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_45wmf")
+
+[node name="Label" type="Label" parent="PhoneContainer/RulesScreen" unique_id=146628942]
+layout_mode = 0
+offset_left = -44.0
+offset_top = -123.0
+offset_right = 21.0
+offset_bottom = -100.0
+offset_transform_enabled = true
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "ATURAN"
+horizontal_alignment = 1
+
+[node name="RichTextLabel" type="RichTextLabel" parent="PhoneContainer/RulesScreen" unique_id=928117829]
+layout_mode = 0
+offset_left = -71.0
+offset_top = -87.0
+offset_right = 73.0
+offset_bottom = 92.0
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 12
+text = "ruang 1 adalah cerminan ruang 2
+
+ruang 2 bisa diubah namun patokannya tetap seperti di awal
+
+object dan meteran tidak bisa jauh dari player
+
+manfaatkan object lain untuk menjangkau object yang diinginkan
+
+tombol selesai hanya bisa dipakai sekali, jika gagal maka harus mengulang
+
+"
 
 [node name="HUDPhoneButton" type="TextureButton" parent="." unique_id=2044469315]
 anchors_preset = 3
