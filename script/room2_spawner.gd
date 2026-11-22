@@ -36,7 +36,19 @@ var _manual_room1_captured: bool = false
 func _ready() -> void:
 	_capture_manual_room1_items()
 	if auto_spawn_on_ready:
-		respawn_current_level()
+		if _get_spawn_parent() != self:
+			call_deferred("respawn_current_level")
+		else:
+			respawn_current_level()
+	else:
+		call_deferred("_ensure_items_render_behind_player")
+
+
+func _get_spawn_parent() -> Node:
+	var parent_node: Node = get_parent()
+	if parent_node and parent_node.get_node_or_null("Player") != null:
+		return parent_node
+	return self
 
 
 ## Returns the active level index from level_override or GameManager.current_level.
@@ -74,6 +86,9 @@ func get_safe_spawn_rect() -> Rect2:
 
 ## Frees all previously spawned objects cleanly to prevent ghost or duplicate nodes.
 func clear_spawned_objects() -> void:
+	var spawner_id: int = get_instance_id()
+	var parent_node: Node = _get_spawn_parent()
+
 	for node in _spawned_room2_nodes:
 		if is_instance_valid(node):
 			if node.get_parent():
@@ -81,10 +96,20 @@ func clear_spawned_objects() -> void:
 			node.queue_free()
 	_spawned_room2_nodes.clear()
 
-	for child in get_children():
-		if is_instance_valid(child) and (child.has_meta("spawned_by_room2_spawner") or child is InteractiveItem):
-			remove_child(child)
-			child.queue_free()
+	var containers: Array[Node] = [self]
+	if parent_node and parent_node != self:
+		containers.append(parent_node)
+	for container in containers:
+		if not is_instance_valid(container):
+			continue
+		for child in container.get_children():
+			if not is_instance_valid(child):
+				continue
+			var matches_spawner: bool = int(child.get_meta("room2_spawner_id", 0)) == spawner_id
+			var legacy_child: bool = (container == self) and (child.has_meta("spawned_by_room2_spawner") or child is InteractiveItem)
+			if matches_spawner or legacy_child:
+				container.remove_child(child)
+				child.queue_free()
 
 	for r1_node in _spawned_room1_nodes:
 		if is_instance_valid(r1_node):
@@ -92,6 +117,31 @@ func clear_spawned_objects() -> void:
 				r1_node.get_parent().remove_child(r1_node)
 			r1_node.queue_free()
 	_spawned_room1_nodes.clear()
+
+
+func _configure_spawned_item(
+	item: InteractiveItem,
+	new_item_id: String,
+	new_texture: Texture2D,
+	new_sprite_scale: Vector2,
+	new_shape_size: Vector2,
+	new_shape_offset: Vector2
+) -> void:
+	item.item_id = new_item_id.strip_edges()
+	var target_sprite := item.get_node_or_null("Sprite2D") as Sprite2D
+	if target_sprite:
+		if new_texture:
+			target_sprite.texture = new_texture
+		if new_sprite_scale != Vector2.ZERO:
+			target_sprite.scale = new_sprite_scale
+
+	var target_collision := item.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if target_collision:
+		var rect_shape := RectangleShape2D.new()
+		rect_shape.size = new_shape_size
+		target_collision.shape = rect_shape
+		target_collision.position = new_shape_offset
+		target_collision.one_way_collision = true
 
 
 ## Respawns objects for the active level using configured player_spawn_position.
@@ -122,6 +172,9 @@ func spawn_level_objects(level: int, player_spawn: Vector2 = player_spawn_positi
 		exclusion_radius
 	)
 
+	var spawn_parent: Node = _get_spawn_parent()
+	var spawner_id: int = get_instance_id()
+
 	# Spawn floor items before stacked items so InteractiveItem._ready() finds supports immediately.
 	for record in placed_records:
 		var world_pos: Vector2 = record["pos"]
@@ -130,31 +183,51 @@ func spawn_level_objects(level: int, player_spawn: Vector2 = player_spawn_positi
 			push_error("Room2Spawner: object_scene root must inherit Node2D.")
 			continue
 
-		obj_instance.position = to_local(world_pos) if is_inside_tree() else world_pos
+		obj_instance.position = (spawn_parent as Node2D).to_local(world_pos) if (spawn_parent is Node2D and spawn_parent.is_inside_tree()) else world_pos
 		obj_instance.set_meta("spawned_by_room2_spawner", true)
+		obj_instance.set_meta("room2_spawner_id", spawner_id)
 
 		if obj_instance is InteractiveItem:
 			var item := obj_instance as InteractiveItem
 			var desc: Dictionary = record["desc"]
-			item.override_home_room = 2
-			item.hold_until_dragged = hold_spawned_position_until_drag
-
 			var tex := desc.get("texture", null) as Texture2D
 			var sc: Vector2 = desc.get("sprite_scale", LevelProgression.DEFAULT_PROP_SCALE)
 			var sz: Vector2 = desc.get("shape_size", Vector2(14.0, 4.0))
 			var off: Vector2 = desc.get("shape_offset", Vector2.ZERO)
 			var id_str: String = desc.get("item_id", "prop")
-			var support_flag: bool = bool(desc.get("can_support_stack", true))
-			var stand_flag: bool = bool(desc.get("can_player_stand", true))
-			item.configure_prop(id_str, tex, sc, sz, off, support_flag, stand_flag)
+			_configure_spawned_item(item, id_str, tex, sc, sz, off)
 
-		add_child(obj_instance)
+		spawn_parent.add_child(obj_instance)
 		_spawned_room2_nodes.append(obj_instance)
 		last_spawn_positions.append(world_pos)
 		last_spawn_records.append(record)
 
+	_ensure_items_render_behind_player()
 	objects_spawned.emit(target_level, _spawned_room2_nodes.size(), last_spawn_used_fallback)
 	return _spawned_room2_nodes.duplicate()
+
+
+func _ensure_items_render_behind_player() -> void:
+	var parent_node: Node = get_parent()
+	if not parent_node:
+		return
+	var player_node: Node = parent_node.get_node_or_null("Player")
+	if not player_node:
+		return
+
+	for item in _manual_room1_items:
+		_move_node_before_player(parent_node, player_node, item)
+	for node in _spawned_room1_nodes:
+		_move_node_before_player(parent_node, player_node, node)
+	for node in _spawned_room2_nodes:
+		_move_node_before_player(parent_node, player_node, node)
+
+
+func _move_node_before_player(parent_node: Node, player_node: Node, node: Node) -> void:
+	if is_instance_valid(node) and not node.is_queued_for_deletion() and node.get_parent() == parent_node:
+		var p_idx: int = player_node.get_index()
+		if node.get_index() > p_idx:
+			parent_node.move_child(node, p_idx)
 
 
 func _get_effective_exclusion_radius() -> float:
@@ -777,7 +850,7 @@ func _capture_manual_room1_items() -> void:
 		if node.get_parent() == self or node.has_meta("spawned_by_room2_spawner"):
 			continue
 		var item := node as InteractiveItem
-		if item and (item.override_home_room == 1 or item.global_position.x < 0.0):
+		if item and item.global_position.x < 0.0:
 			_manual_room1_items.append(item)
 
 
@@ -785,7 +858,7 @@ func _set_manual_item_active(item: InteractiveItem, active: bool) -> void:
 	if not is_instance_valid(item):
 		return
 	item.visible = active
-	item.collision_layer = (2 if item.can_player_stand else 0) if active else 0
+	item.collision_layer = 2 if active else 0
 	var col := item.get_node_or_null("CollisionShape2D") as CollisionShape2D
 	if col:
 		col.set_deferred("disabled", not active)
@@ -821,8 +894,7 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 				"sprite_offset": r1_sprite.position if r1_sprite else Vector2.ZERO,
 				"shape_size": shape_size,
 				"shape_offset": shape_offset,
-				"can_support_stack": r1.can_support_stack,
-				"can_player_stand": r1.can_player_stand,
+				"can_support_stack": LevelProgression.is_stack_support(r1.item_id),
 			})
 		else:
 			var def: Dictionary = LevelProgression.get_prop_definition(i)
@@ -832,7 +904,6 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 			var def_size: Vector2 = def.get("shape_size", Vector2(14.0, 4.0))
 			var def_offset: Vector2 = def.get("shape_offset", Vector2.ZERO)
 			var def_support: bool = bool(def.get("can_support_stack", true))
-			var def_stand: bool = bool(def.get("can_player_stand", true))
 
 			if sync_room1_references and parent_node and object_scene:
 				var r1_extra := object_scene.instantiate() as Node2D
@@ -841,11 +912,10 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 					r1_extra.name = "ExtraRef_%s" % def_id
 					r1_extra.position = r1_pos
 					r1_extra.set_meta("spawned_by_room2_spawner", true)
+					r1_extra.set_meta("room2_spawner_id", get_instance_id())
 					if r1_extra is InteractiveItem:
 						var r1_item := r1_extra as InteractiveItem
-						r1_item.override_home_room = 1
-						r1_item.hold_until_dragged = false
-						r1_item.configure_prop(def_id, tex, LevelProgression.DEFAULT_PROP_SCALE, def_size, def_offset, def_support, def_stand)
+						_configure_spawned_item(r1_item, def_id, tex, LevelProgression.DEFAULT_PROP_SCALE, def_size, def_offset)
 					parent_node.add_child(r1_extra)
 					_spawned_room1_nodes.append(r1_extra)
 
@@ -857,7 +927,6 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 				"shape_size": def_size,
 				"shape_offset": def_offset,
 				"can_support_stack": def_support,
-				"can_player_stand": def_stand,
 			})
 
 	return descriptors

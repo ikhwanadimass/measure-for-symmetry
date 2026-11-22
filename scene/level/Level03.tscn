@@ -28,7 +28,6 @@ level_override = 3
 position = Vector2(-146, -12)
 input_pickable = true
 script = ExtResource("2_item")
-can_support_stack = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Stool_Room1"]
 scale = Vector2(1.5227274, 1.2794117)
@@ -44,8 +43,6 @@ position = Vector2(-124, -14)
 input_pickable = true
 script = ExtResource("2_item")
 item_id = "lamp_01"
-can_support_stack = false
-can_player_stand = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Lamp_Room1"]
 scale = Vector2(1.5227274, 1.2794117)
@@ -61,8 +58,6 @@ position = Vector2(-85, -15)
 input_pickable = true
 script = ExtResource("2_item")
 item_id = "plant_01"
-can_support_stack = false
-can_player_stand = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Plant_Room1"]
 scale = Vector2(1.5227274, 1.2794117)

@@ -16,7 +16,6 @@ level_override = 1
 position = Vector2(-146, -12)
 input_pickable = true
 script = ExtResource("2_item")
-can_support_stack = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Stool_Room1"]
 scale = Vector2(1.5227274, 1.2794117)
