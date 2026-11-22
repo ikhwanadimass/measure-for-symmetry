@@ -80,6 +80,16 @@ var waktu_sisa: float = 120.0
 var timer_berjalan: bool = false
 var status_evaluasi: String = ""
 var sudah_selesai_evaluasi: bool = false
+var is_handling_result: bool = false
+
+func is_in_tutorial() -> bool:
+	if owner and owner.name == "LevelTutorial":
+		return true
+	if get_parent() and get_parent().name == "LevelTutorial":
+		return true
+	if get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial":
+		return true
+	return false
 
 func _ready() -> void:
 	perbaiki_teks_tombol_otomatis()
@@ -88,19 +98,22 @@ func _ready() -> void:
 	setup_pilihan_mode_rapi()
 	setup_meteran_label()
 	
-	# CEK APAKAH SEDANG DI SCENE TUTORIAL:
-	if get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial":
+	var am = get_node_or_null("/root/AudioManager")
+	
+	if is_in_tutorial():
+		if am: am.play_bgm("game")
 		mulai_permainan()
+		if timer_label: timer_label.visible = false
 		return
 		
-	# CEK APAKAH PEMAIN SEDANG MENGULANG LEVEL (REPLAY):
 	var gm = get_node_or_null("/root/GameManager")
 	if gm and gm.is_replaying:
 		gm.is_replaying = false
+		if am: am.play_bgm("game")
 		mulai_permainan()
 		return
 		
-	# KONDISI AWAL GAME BARU DIBUKA:
+	if am: am.play_bgm("home")
 	is_game_started = false
 	set_hud_visibilitas(false)
 	tampilkan_interaksi("")
@@ -122,8 +135,7 @@ func set_btn_label(btn: Control, teks: String) -> void:
 				return
 
 func setup_in_game_menu_otomatis() -> void:
-	if not phone_frame or in_game_menu:
-		return
+	if not phone_frame or in_game_menu: return
 		
 	in_game_menu = VBoxContainer.new()
 	in_game_menu.name = "InGameMenu"
@@ -138,95 +150,81 @@ func setup_in_game_menu_otomatis() -> void:
 	in_game_menu.add_theme_constant_override("separation", 10)
 	
 	btn_ig_resume = btn_play.duplicate() as TextureButton
-	set_btn_label(btn_ig_resume, "Lanjut Main")
+	btn_ig_resume.name = "BtnResume"
+	set_btn_label(btn_ig_resume, "Lanjut")
 	btn_ig_resume.pressed.connect(close_phone)
 	in_game_menu.add_child(btn_ig_resume)
 	
 	btn_ig_notes = btn_play.duplicate() as TextureButton
-	set_btn_label(btn_ig_notes, "Catatan [N]")
-	btn_ig_notes.pressed.connect(buka_catatan_langsung)
+	btn_ig_notes.name = "BtnNotes"
+	set_btn_label(btn_ig_notes, "Catatan")
+	btn_ig_notes.pressed.connect(_on_btn_notes_pressed)
 	in_game_menu.add_child(btn_ig_notes)
 	
 	btn_ig_finish = btn_play.duplicate() as TextureButton
-	set_btn_label(btn_ig_finish, "Selesai Misi [M]")
-	btn_ig_finish.pressed.connect(buka_selesai_langsung)
+	btn_ig_finish.name = "BtnFinish"
+	set_btn_label(btn_ig_finish, "Selesai")
+	btn_ig_finish.pressed.connect(evaluasi_misi)
 	in_game_menu.add_child(btn_ig_finish)
 	
 	btn_ig_main_menu = btn_play.duplicate() as TextureButton
+	btn_ig_main_menu.name = "BtnMainMenu"
 	set_btn_label(btn_ig_main_menu, "Menu Utama")
-	btn_ig_main_menu.pressed.connect(kembali_ke_judul)
+	btn_ig_main_menu.pressed.connect(_on_btn_main_menu_pressed)
 	in_game_menu.add_child(btn_ig_main_menu)
 	
 	phone_frame.add_child(in_game_menu)
 	in_game_menu.visible = false
 
-func kembali_ke_judul() -> void:
-	is_game_started = false
-	set_hud_visibilitas(false)
-	show_screen("main")
-
-func set_hud_visibilitas(tampil: bool) -> void:
-	if hud_phone_button:
-		hud_phone_button.visible = tampil
-	if timer_label:
-		timer_label.visible = tampil
-
 func setup_pilihan_mode_rapi() -> void:
-	if form_container:
-		form_container.offset_left = -37.0
-		form_container.offset_right = 77.0
-		form_container.offset_top = -50.0
-		form_container.offset_bottom = 85.0
-		form_container.add_theme_constant_override("separation", 5)
+	if not option_mode or not form_container: return
 		
-		for child in form_container.get_children():
-			if child is Label and child != label_mode_desc:
-				child.add_theme_font_size_override("font_size", UKURAN_FONT_LABEL)
-				child.add_theme_color_override("font_color", Color(0, 0, 0, 1))
-
-	if input_save_name:
-		input_save_name.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
-		input_save_name.custom_minimum_size = Vector2(114, 24)
+	option_mode.clear()
+	option_mode.add_item("Mode Santai", 0)
+	option_mode.add_item("Mode Normal", 1)
+	option_mode.add_item("Mode Sulit", 2)
+	option_mode.add_item("Mode Bebas", 3)
+	
+	option_mode.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
+	if input_save_name: input_save_name.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
+	if btn_start_new_game: btn_start_new_game.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
+	if btn_back_new_game: btn_back_new_game.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
 		
-	if option_mode:
-		option_mode.clear()
-		option_mode.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
-		option_mode.custom_minimum_size = Vector2(114, 26)
-		option_mode.add_item("Ringan", 0)
-		option_mode.add_item("Biasa", 1)
-		option_mode.add_item("Hard", 2)
-		option_mode.add_item("Bebas", 3)
-		option_mode.selected = 1
-		if not option_mode.item_selected.is_connected(_on_mode_item_selected):
-			option_mode.item_selected.connect(_on_mode_item_selected)
-
-	if form_container and not label_mode_desc:
+	if not label_mode_desc:
 		label_mode_desc = Label.new()
-		label_mode_desc.name = "ModeDescLabel"
-		label_mode_desc.add_theme_font_size_override("font_size", UKURAN_FONT_DESC)
-		label_mode_desc.add_theme_color_override("font_color", Color(0.25, 0.25, 0.25, 1.0))
+		label_mode_desc.name = "LabelModeDesc"
 		label_mode_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label_mode_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label_mode_desc.add_theme_color_override("font_color", Color(0.15, 0.15, 0.15, 1.0))
+		label_mode_desc.add_theme_font_size_override("font_size", UKURAN_FONT_DESC)
 		form_container.add_child(label_mode_desc)
-		form_container.move_child(label_mode_desc, option_mode.get_index() + 1)
-		_update_mode_desc(1)
-		
-	if btn_start_new_game:
-		btn_start_new_game.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
-		btn_start_new_game.custom_minimum_size = Vector2(114, 26)
+		if btn_start_new_game:
+			form_container.move_child(label_mode_desc, btn_start_new_game.get_index())
+			
+	option_mode.item_selected.connect(_on_mode_item_selected)
+	option_mode.selected = 1
+	_on_mode_item_selected(1)
 
 func _on_mode_item_selected(index: int) -> void:
-	_update_mode_desc(index)
-
-func _update_mode_desc(index: int) -> void:
-	if not label_mode_desc: return
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		gm.current_mode = index
+	
+	var deskripsi: String = ""
 	match index:
-		0: label_mode_desc.text = "3 Menit | 5x Masuk"
-		1: label_mode_desc.text = "2 Menit | 3x Masuk"
-		2: label_mode_desc.text = "1 Menit | 2x Masuk"
-		3: label_mode_desc.text = "Tanpa Batas Waktu & Masuk"
+		0: deskripsi = "Pintu: 5x | Waktu: 3 Menit\nCocok untuk pemula."
+		1: deskripsi = "Pintu: 3x | Waktu: 2 Menit\nPengalaman standar."
+		2: deskripsi = "Pintu: 1x | Waktu: 1 Menit\nTantangan maksimal!"
+		3: deskripsi = "Pintu: Bebas | Waktu: Bebas\nEksplorasi tanpa batas."
+			
+	if label_mode_desc:
+		label_mode_desc.text = deskripsi
 
 func hubungkan_semua_tombol() -> void:
-	if hud_phone_button: hud_phone_button.pressed.connect(_on_hud_phone_button_pressed)
+	if hud_phone_button: hud_phone_button.pressed.connect(toggle_phone)
 	if btn_play: btn_play.pressed.connect(_on_btn_play_pressed)
 	if btn_tutorial: btn_tutorial.pressed.connect(_on_btn_tutorial_pressed)
 	if btn_settings: btn_settings.pressed.connect(_on_btn_settings_pressed)
@@ -235,113 +233,146 @@ func hubungkan_semua_tombol() -> void:
 	
 	if btn_continue_game: btn_continue_game.pressed.connect(_on_btn_continue_game_pressed)
 	if btn_new_game: btn_new_game.pressed.connect(_on_btn_new_game_pressed)
-	if btn_select_level: btn_select_level.pressed.connect(func(): show_screen("level_select"))
-	if btn_back_play: btn_back_play.pressed.connect(func(): show_screen("main"))
+	if btn_select_level: btn_select_level.pressed.connect(_on_btn_select_level_pressed)
+	if btn_back_play: btn_back_play.pressed.connect(_on_btn_back_play_pressed)
 	
 	if btn_start_new_game: btn_start_new_game.pressed.connect(_on_btn_start_new_game_pressed)
-	if btn_back_new_game: btn_back_new_game.pressed.connect(func(): show_screen("play_menu"))
+	if btn_back_new_game: btn_back_new_game.pressed.connect(func(): 
+		var am = get_node_or_null("/root/AudioManager")
+		if am: am.play_sfx("click")
+		show_screen("play_menu")
+	)
 	
 	if btn_level_1: btn_level_1.pressed.connect(_on_btn_level_1_pressed)
-	if btn_back_level_select: btn_back_level_select.pressed.connect(func(): show_screen("play_menu"))
+	if btn_back_level_select: btn_back_level_select.pressed.connect(func(): 
+		var am = get_node_or_null("/root/AudioManager")
+		if am: am.play_sfx("click")
+		show_screen("play_menu")
+	)
 	
-	if btn_back_notes: btn_back_notes.pressed.connect(func(): show_screen("in_game" if is_game_started else "main"))
+	if btn_back_notes: btn_back_notes.pressed.connect(_on_btn_back_notes_pressed)
 	if btn_close_result: btn_close_result.pressed.connect(_on_btn_close_result_pressed)
 
-# ===== AKSI TOMBOL MENU =====
 func _on_btn_play_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	var gm = get_node_or_null("/root/GameManager")
+	var has_save: bool = gm.has_save if gm else false
+	
+	if btn_continue_game: btn_continue_game.visible = has_save
 	show_screen("play_menu")
-	var gm = get_node_or_null("/root/GameManager")
-	var ada_save = gm.has_save if gm else false
-	
-	# Tombol Lanjutkan & Pilih Level hanya tampil jika sudah ada save:
-	if btn_continue_game:
-		btn_continue_game.visible = ada_save
-	if btn_select_level:
-		btn_select_level.visible = ada_save
-	
-	if ada_save and btn_continue_game:
-		btn_continue_game.grab_focus()
-	elif btn_new_game:
-		btn_new_game.grab_focus()
-
-func _on_btn_new_game_pressed() -> void:
-	show_screen("new_game")
-	if input_save_name:
-		input_save_name.grab_focus()
-
-func _on_btn_start_new_game_pressed() -> void:
-	var nama = input_save_name.text if input_save_name else "Player 1"
-	var mode = option_mode.selected if option_mode else 1
-	var gm = get_node_or_null("/root/GameManager")
-	if gm:
-		gm.buat_save_baru(nama, mode)
-	
-	mulai_permainan()
 
 func _on_btn_continue_game_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.has_save:
+		gm.load_from_disk()
+	mulai_permainan()
+
+func _on_btn_new_game_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	show_screen("new_game")
+	if input_save_name:
+		input_save_name.text = "Player"
+		input_save_name.grab_focus()
+
+func _on_btn_select_level_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	show_screen("level_select")
+
+func _on_btn_back_play_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	show_screen("main")
+
+func _on_btn_start_new_game_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	var nama = input_save_name.text.strip_edges() if input_save_name else "Player"
+	if nama.is_empty(): nama = "Player"
+	
+	var gm = get_node_or_null("/root/GameManager")
+	var mode_pilihan = option_mode.selected if option_mode else 1
+	if gm:
+		gm.buat_save_baru(nama, mode_pilihan)
 	mulai_permainan()
 
 func _on_btn_level_1_pressed() -> void:
-	var current_path = get_tree().current_scene.scene_file_path
-	if current_path == "res://scene/Level01.tscn":
-		mulai_permainan()
-	else:
-		get_tree().paused = false
-		get_tree().change_scene_to_file("res://scene/Level01.tscn")
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	mulai_permainan()
+
+func _on_btn_notes_pressed() -> void:
+	buka_catatan_langsung()
+
+func _on_btn_back_notes_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	if is_game_started: show_screen("in_game")
+	else: show_screen("main")
+
+func _on_btn_main_menu_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am:
+		am.play_sfx("click")
+		am.play_bgm("home")
+	is_game_started = false
+	timer_berjalan = false
+	set_hud_visibilitas(false)
+	show_screen("main")
 
 func mulai_permainan() -> void:
 	is_game_started = true
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_bgm("game")
 	set_hud_visibilitas(true)
 	close_phone()
 	reset_dan_hentikan_timer()
 
 func _on_btn_tutorial_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am:
+		am.play_sfx("click")
+		am.play_bgm("game")
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scene/LevelTutorial.tscn")
 
 func _on_btn_settings_pressed() -> void:
-	print("Pengaturan diklik")
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
 
 func _on_btn_load_progress_pressed() -> void:
-	print("Load Progress diklik")
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
 
-# ===== PENGELOLA LAYAR & FOKUS KEYBOARD =====
 func show_screen(screen_name: String) -> void:
 	if main_menu: main_menu.visible = (screen_name == "main")
 	if play_menu: play_menu.visible = (screen_name == "play_menu")
 	if new_game_screen: new_game_screen.visible = (screen_name == "new_game")
 	if level_select_screen: level_select_screen.visible = (screen_name == "level_select")
 	if notes_screen: notes_screen.visible = (screen_name == "notes")
-	if result_screen: result_screen.visible = (screen_name == "result")
 	if in_game_menu: in_game_menu.visible = (screen_name == "in_game")
-	
-	call_deferred("_atur_fokus_layar", screen_name)
+	if result_screen: result_screen.visible = (screen_name == "result")
+	_atur_fokus_layar(screen_name)
 
 func _atur_fokus_layar(screen_name: String) -> void:
 	match screen_name:
-		"main":
-			if btn_play: btn_play.grab_focus()
+		"main": if btn_play: btn_play.grab_focus()
 		"play_menu":
-			if btn_continue_game and btn_continue_game.visible:
-				btn_continue_game.grab_focus()
-			elif btn_new_game:
-				btn_new_game.grab_focus()
-		"new_game":
-			if input_save_name: input_save_name.grab_focus()
-		"level_select":
-			if btn_level_1: btn_level_1.grab_focus()
-		"in_game":
-			if btn_ig_resume: btn_ig_resume.grab_focus()
-		"result":
-			if btn_close_result: btn_close_result.grab_focus()
+			if btn_continue_game and btn_continue_game.visible: btn_continue_game.grab_focus()
+			elif btn_new_game: btn_new_game.grab_focus()
+		"new_game": if input_save_name: input_save_name.grab_focus()
+		"level_select": if btn_level_1: btn_level_1.grab_focus()
+		"in_game": if btn_ig_resume: btn_ig_resume.grab_focus()
+		"result": if btn_close_result: btn_close_result.grab_focus()
 
 func toggle_phone() -> void:
-	if not is_game_started:
-		return
-	if is_open:
-		close_phone()
-	else:
-		open_phone()
+	if not is_game_started: return
+	if is_open: close_phone()
+	else: open_phone()
 
 func open_phone() -> void:
 	is_open = true
@@ -349,37 +380,41 @@ func open_phone() -> void:
 	phone_container.visible = true
 	get_tree().paused = true
 	
-	if is_game_started:
-		show_screen("in_game")
-	else:
-		show_screen("main")
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("phone")
+	
+	if is_game_started: show_screen("in_game")
+	else: show_screen("main")
 
 func close_phone() -> void:
 	is_open = false
 	dim_overlay.visible = false
 	phone_container.visible = false
 	get_tree().paused = false
+	
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("phone_close")
 
-# ===== NAVIGASI KEYBOARD W / S / PANAH / ENTER =====
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventKey and event.pressed and not event.echo):
 		return
 		
-	# 1. SHORTCUT ENTER / SPACE DI LAYAR HASIL EVALUASI
+	# 1. Shortcut Enter / Space di layar evaluasi
 	if is_open and result_screen and result_screen.visible:
 		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE:
-			_on_btn_close_result_pressed()
 			get_viewport().set_input_as_handled()
+			_on_btn_close_result_pressed()
 			return
 
-	# 2. Tombol TAB (Buka/Tutup HP saat main)
+	# 2. Tombol TAB murni untuk Buka / Tutup HP
 	if event.keycode == KEY_TAB:
-		if is_game_started:
+		var is_typing = (input_save_name and input_save_name.has_focus()) or (notes_screen and notes_screen.visible and notes_text_edit and notes_text_edit.has_focus())
+		if not is_typing:
 			toggle_phone()
 			get_viewport().set_input_as_handled()
-		return
+			return
 		
-	# 3. Shortcut Cepat saat HP tertutup
+	# 3. Shortcut saat HP tertutup
 	if not is_open:
 		if event.keycode == KEY_N and is_game_started:
 			buka_catatan_langsung()
@@ -389,9 +424,8 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 
-	# 4. Navigasi W / S / Panah Atas / Bawah
-	var is_typing = (input_save_name and input_save_name.has_focus()) or (notes_screen and notes_screen.visible and notes_text_edit.has_focus())
-	
+	# 4. Navigasi keyboard W / S / Panah Atas / Bawah
+	var is_typing = (input_save_name and input_save_name.has_focus()) or (notes_screen and notes_screen.visible and notes_text_edit and notes_text_edit.has_focus())
 	if is_open and not is_typing:
 		if event.keycode == KEY_W or event.keycode == KEY_UP:
 			var focused = get_viewport().gui_get_focus_owner()
@@ -408,81 +442,88 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
-	# 5. Tombol ESC untuk Kembali
+	# 5. Tombol ESC untuk kembali / tutup HP
 	if event.keycode == KEY_ESCAPE and is_open:
-		if new_game_screen and new_game_screen.visible:
-			show_screen("play_menu")
-		elif level_select_screen and level_select_screen.visible:
-			show_screen("play_menu")
-		elif play_menu and play_menu.visible:
-			show_screen("main")
-		elif notes_screen and notes_screen.visible:
-			show_screen("in_game" if is_game_started else "main")
-		elif in_game_menu and in_game_menu.visible:
-			close_phone()
-		elif is_game_started:
-			close_phone()
+		var am = get_node_or_null("/root/AudioManager")
+		if am: am.play_sfx("click")
+		if new_game_screen and new_game_screen.visible: show_screen("play_menu")
+		elif level_select_screen and level_select_screen.visible: show_screen("play_menu")
+		elif play_menu and play_menu.visible: show_screen("main")
+		elif notes_screen and notes_screen.visible: show_screen("in_game" if is_game_started else "main")
+		elif in_game_menu and in_game_menu.visible: close_phone()
+		elif is_game_started: close_phone()
 		get_viewport().set_input_as_handled()
 
 func buka_catatan_langsung() -> void:
 	open_phone()
 	show_screen("notes")
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("note")
 	if notes_text_edit: notes_text_edit.grab_focus()
 
 func buka_selesai_langsung() -> void:
 	open_phone()
-	_evaluasi_misi()
+	evaluasi_misi()
 
-func _evaluasi_misi() -> void:
+func evaluasi_misi() -> void:
+	if not get_tree() or not get_tree().current_scene: return
 	var checker = get_tree().current_scene.find_child("SymmetryChecker", true, false)
-	if checker and checker.has_method("hitung_evaluasi"):
-		var hasil = checker.hitung_evaluasi()
-		tampilkan_hasil(hasil)
-
-func tampilkan_hasil(hasil: Dictionary) -> void:
-	sudah_selesai_evaluasi = true
+	if not checker: return
+		
+	var hasil: Dictionary = checker.hitung_evaluasi()
 	status_evaluasi = hasil.get("status", "game_over")
-	var grade = hasil.get("grade", "happy")
+	is_handling_result = false
+	var am = get_node_or_null("/root/AudioManager")
 	
-	match grade:
+	match hasil.get("grade", "sad"):
 		"happy":
 			emoji_rect.texture = EMOJI_HAPPY
 			btn_close_result.text = "[Enter] Lanjut"
+			if am: am.play_sfx("win")
 		"neutral":
 			emoji_rect.texture = EMOJI_NEUTRAL
 			btn_close_result.text = "[Enter] Lanjut"
+			if am: am.play_sfx("medium")
 		"sad":
 			emoji_rect.texture = EMOJI_SAD
 			btn_close_result.text = "[Enter] Ulangi"
+			if am: am.play_sfx("game_over")
 			
 	result_label.text = hasil.get("text", "Evaluasi Selesai")
 	show_screen("result")
-	
-	if btn_close_result:
-		btn_close_result.grab_focus()
+	if btn_close_result: btn_close_result.grab_focus()
 
 func _on_btn_close_result_pressed() -> void:
-	if get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial":
-		get_tree().paused = false
-		get_tree().change_scene_to_file("res://scene/Level01.tscn")
+	if is_handling_result: return
+	is_handling_result = true
+	
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	
+	close_phone()
+	get_tree().paused = false
+	
+	if is_in_tutorial():
+		if status_evaluasi == "game_over":
+			get_tree().change_scene_to_file("res://scene/LevelTutorial.tscn")
+		else:
+			get_tree().change_scene_to_file("res://scene/Level01.tscn")
 		return
 		
 	var gm = get_node_or_null("/root/GameManager")
 	if status_evaluasi == "game_over":
-		# Ulangi Level: Muat ulang scene dan LANGSUNG main (tidak dilempar ke menu awal)
-		if gm:
-			gm.is_replaying = true
-		get_tree().paused = false
-		get_tree().call_deferred("reload_current_scene")
+		if gm: gm.is_replaying = true
+		get_tree().change_scene_to_file("res://scene/Level01.tscn")
 	else:
-		# Berhasil / Sedang: Buka level berikutnya dan simpan ke disk
-		if gm:
-			gm.buka_level_berikutnya()
-		# Tampilkan layar pilih level agar pemain bisa pilih level berikutnya
-		show_screen("level_select")
+		if gm: gm.buka_level_berikutnya()
+		get_tree().change_scene_to_file("res://scene/Level01.tscn")
 
-# ===== SISTEM TIMER & MODE =====
 func mulai_timer_ruang2() -> void:
+	if is_in_tutorial():
+		timer_berjalan = false
+		if timer_label: timer_label.visible = false
+		return
+		
 	var gm = get_node_or_null("/root/GameManager")
 	var durasi = gm.get_mode_info()["waktu"] if gm else 120.0
 	
@@ -495,6 +536,11 @@ func mulai_timer_ruang2() -> void:
 		update_timer_display()
 
 func reset_dan_hentikan_timer() -> void:
+	if is_in_tutorial():
+		timer_berjalan = false
+		if timer_label: timer_label.visible = false
+		return
+		
 	var gm = get_node_or_null("/root/GameManager")
 	var durasi = gm.get_mode_info()["waktu"] if gm else 120.0
 	timer_berjalan = false
@@ -515,17 +561,22 @@ func _process(delta: float) -> void:
 		update_timer_display()
 
 func update_timer_display() -> void:
-	if timer_label:
-		var menit: int = int(waktu_sisa) / 60
-		var detik: int = int(waktu_sisa) % 60
-		timer_label.text = "%02d:%02d" % [menit, detik]
+	if not timer_label: return
+	if is_in_tutorial():
+		timer_label.visible = false
+		return
 		
-		if waktu_sisa <= 30.0 and timer_berjalan:
-			timer_label.add_theme_color_override("font_color", Color(0.9, 0.2, 0.2, 1.0))
-		else:
-			timer_label.add_theme_color_override("font_color", Color(0.0, 0.0, 0.0, 1.0))
+	var menit: int = int(waktu_sisa) / 60
+	var detik: int = int(waktu_sisa) % 60
+	timer_label.text = "%02d:%02d" % [menit, detik]
+	
+	if waktu_sisa <= 30.0 and timer_berjalan:
+		timer_label.add_theme_color_override("font_color", Color(0.9, 0.2, 0.2, 1.0))
+	else:
+		timer_label.add_theme_color_override("font_color", Color(0.0, 0.0, 0.0, 1.0))
 
 func kembalikan_ke_ruang1() -> void:
+	if not get_tree() or not get_tree().current_scene: return
 	var player = get_tree().current_scene.find_child("Player", true, false)
 	if player:
 		player.global_position.x = -40.0
@@ -548,28 +599,19 @@ func setup_meteran_label() -> void:
 		ukuran = info_label.get_theme_font_size("font_size")
 	meteran_label.add_theme_font_size_override("font_size", ukuran)
 	
-	if info_label.has_theme_font_override("font"):
-		meteran_label.add_theme_font_override("font", info_label.get_theme_font("font"))
-		
-	meteran_label.add_theme_color_override("font_color", WARNA_METERAN_MATI)
-	info_label.get_parent().add_child(meteran_label)
+	set_status_meteran(false)
+	hud_phone_button.add_child(meteran_label)
 
-func set_meteran_aktif(aktif: bool) -> void:
+func set_status_meteran(aktif: bool) -> void:
 	if meteran_label:
-		if aktif:
-			meteran_label.add_theme_color_override("font_color", WARNA_METERAN_AKTIF)
-		else:
-			meteran_label.add_theme_color_override("font_color", WARNA_METERAN_MATI)
+		meteran_label.add_theme_color_override("font_color", WARNA_METERAN_AKTIF if aktif else WARNA_METERAN_MATI)
 
 func tampilkan_interaksi(pesan: String) -> void:
 	if interact_label:
-		if pesan == "":
-			interact_label.text = ""
-			interact_label.visible = false
-		else:
-			interact_label.text = pesan
-			interact_label.visible = true
+		interact_label.text = pesan
 
-func _on_hud_phone_button_pressed() -> void:
-	if is_game_started:
-		toggle_phone()
+func set_hud_visibilitas(tampil: bool) -> void:
+	if hud_phone_button:
+		hud_phone_button.visible = tampil
+	if timer_label:
+		timer_label.visible = tampil and not is_in_tutorial()

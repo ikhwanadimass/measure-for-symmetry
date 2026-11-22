@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b7nwb4ff0lhfk"
+path="res://.godot/imported/drop_muffled.wav-08322a6fd555d05f7f71619f4ddb16b8.sample"
+
+[deps]
+
+source_file="res://asset/Sound/96 Extra SFX/drop_muffled.wav"
+dest_files=["res://.godot/imported/drop_muffled.wav-08322a6fd555d05f7f71619f4ddb16b8.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

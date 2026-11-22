@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bevxlida7x1sd"
+path="res://.godot/imported/digital_footstep_wood_2.wav-56541d92a6dd1f0c5e21b064c8ad319a.sample"
+
+[deps]
+
+source_file="res://asset/Sound/400 Sounds Pack/Footsteps/digital/digital_footstep_wood_2.wav"
+dest_files=["res://.godot/imported/digital_footstep_wood_2.wav-56541d92a6dd1f0c5e21b064c8ad319a.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

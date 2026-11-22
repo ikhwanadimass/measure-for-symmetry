@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://fm0cn0bp627g"]
+[gd_scene format=4 uid="uid://x4nekwnbkkyr"]
 
 [ext_resource type="PackedScene" uid="uid://ninafum7a0yl" path="res://scene/player/player.tscn" id="1_cd2m8"]
 [ext_resource type="Texture2D" uid="uid://djd7nujp0nmvv" path="res://asset/tileseet/CartoonRooms/tileset_v1.png" id="1_rcdr2"]

@@ -3,9 +3,17 @@ extends Area2D
 var jumlah_masuk: int = 0
 var player_near: CharacterBody2D = null
 
+func is_in_tutorial() -> bool:
+	if owner and owner.name == "LevelTutorial":
+		return true
+	if get_parent() and get_parent().name == "LevelTutorial":
+		return true
+	if get_tree() and get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial":
+		return true
+	return false
+
 func get_max_masuk() -> int:
-	# Di mode tutorial, pintu tidak ada batas kuota sama sekali
-	if get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial":
+	if is_in_tutorial():
 		return 99999
 	var gm = get_node_or_null("/root/GameManager")
 	return gm.get_mode_info()["max_masuk"] if gm else 3
@@ -20,13 +28,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func teleport_player() -> void:
 	var camera = player_near.get_node_or_null("Camera2D") as Camera2D
-	var phone = get_tree().current_scene.find_child("Smartphone", true, false)
+	var phone = null
+	if get_tree() and get_tree().current_scene:
+		phone = get_tree().current_scene.find_child("Smartphone", true, false)
+		
 	var max_m = get_max_masuk()
-	var is_tutorial = (get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial")
+	var in_tut = is_in_tutorial()
+	
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("door", -3.0)
 	
 	# 1. Masuk ke Ruang 2
 	if player_near.global_position.x < 0:
-		if not is_tutorial and jumlah_masuk >= max_m:
+		if not in_tut and jumlah_masuk >= max_m:
 			return
 		
 		jumlah_masuk += 1
@@ -35,7 +49,7 @@ func teleport_player() -> void:
 			camera.limit_left = 4
 			camera.limit_right = 204
 			
-		if not is_tutorial and phone and phone.has_method("mulai_timer_ruang2"):
+		if not in_tut and phone and phone.has_method("mulai_timer_ruang2"):
 			phone.mulai_timer_ruang2()
 			
 		update_interact_prompt()
@@ -66,20 +80,16 @@ func update_interact_prompt() -> void:
 	if not player_near:
 		return
 		
-	var is_tutorial = (get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial")
-	
-	# Jika di mode Tutorial: Murni bebas tanpa angka kuota
-	if is_tutorial:
+	if is_in_tutorial():
 		if player_near.global_position.x < 0:
 			kirim_prompt_ke_hud("[E] PINDAH")
 		else:
 			kirim_prompt_ke_hud("[E] KEMBALI")
 		return
 		
-	# Mode Game Normal: Pakai hitungan kuota
 	var max_m = get_max_masuk()
 	if player_near.global_position.x < 0:
-		if max_m >= 999: # Mode Bebas
+		if max_m >= 999:
 			kirim_prompt_ke_hud("[E] PINDAH")
 		elif jumlah_masuk >= max_m:
 			kirim_prompt_ke_hud("TERKUNCI!\n(%d/%d)" % [jumlah_masuk, max_m])
@@ -89,6 +99,8 @@ func update_interact_prompt() -> void:
 		kirim_prompt_ke_hud("[E] KEMBALI")
 
 func kirim_prompt_ke_hud(pesan: String) -> void:
+	if not is_inside_tree() or not get_tree() or not get_tree().current_scene:
+		return
 	var phone = get_tree().current_scene.find_child("Smartphone", true, false)
 	if phone and phone.has_method("tampilkan_interaksi"):
 		phone.tampilkan_interaksi(pesan)

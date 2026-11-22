@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://mwfr8al3dba8"
+path="res://.godot/imported/stone_scrape_2.wav-6b2b61f87d83eeb08087f4c07d2f2bbe.sample"
+
+[deps]
+
+source_file="res://asset/Sound/96 Extra SFX/stone_scrape_2.wav"
+dest_files=["res://.godot/imported/stone_scrape_2.wav-6b2b61f87d83eeb08087f4c07d2f2bbe.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
