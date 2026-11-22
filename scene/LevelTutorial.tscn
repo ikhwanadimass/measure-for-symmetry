@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://d1vpics1fougp" path="res://asset/wb/wrong-wb.png" id="9_wb_wrong"]
 [ext_resource type="Texture2D" uid="uid://qcknk830m5dt" path="res://asset/wb/correct-wb.png" id="10_wb_correct"]
 [ext_resource type="Texture2D" uid="uid://ddbcl60g3guds" path="res://asset/wb/correct_wb.png" id="11_wb_plain"]
+[ext_resource type="Script" path="res://script/tutorial_manager.gd" id="12_tut_mgr"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rcdr2"]
 texture = ExtResource("1_rcdr2")
@@ -2098,27 +2099,28 @@ shape = SubResource("RectangleShape2D_ceiling")
 [node name="BoardWrong" type="Sprite2D" parent="TutorialBoards" unique_id=1403212149]
 texture_filter = 1
 position = Vector2(-166, -39)
-scale = Vector2(0.1, 0.1)
+scale = Vector2(0.05, 0.05)
 texture = ExtResource("9_wb_wrong")
 
 [node name="BoardCorrect" type="Sprite2D" parent="TutorialBoards" unique_id=436978248]
 texture_filter = 1
 position = Vector2(-55, -39)
-scale = Vector2(0.1, 0.1)
+scale = Vector2(0.05, 0.05)
 texture = ExtResource("10_wb_correct")
 
 [node name="BoardInstruction" type="Sprite2D" parent="TutorialBoards" unique_id=1283780189]
+texture_filter = 1
 position = Vector2(-111.00001, -39)
-scale = Vector2(0.1, 0.1)
+scale = Vector2(0.05, 0.05)
 texture = ExtResource("11_wb_plain")
 
 [node name="InstructionLabel" type="Label" parent="TutorialBoards/BoardInstruction" unique_id=358390931]
-offset_left = -240.0
-offset_top = -140.0
-offset_right = 240.0
-offset_bottom = 140.0
+offset_left = -480.0
+offset_top = -280.0
+offset_right = 480.0
+offset_bottom = 280.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 56
 text = "TAHAP 1:
 Gunakan [A] / [D] untuk jalan.
 Gunakan [W] / [Spasi] untuk lompat."
@@ -2175,3 +2177,6 @@ script = ExtResource("6_ovpq8")
 [node name="MeasureTool" parent="." unique_id=1399065421 instance=ExtResource("7_w5f1j")]
 
 [node name="Smartphone" parent="." unique_id=331973353 instance=ExtResource("8_y2gif")]
+
+[node name="TutorialManager" type="Node" parent="."]
+script = ExtResource("12_tut_mgr")

@@ -88,6 +88,11 @@ func _ready() -> void:
 	setup_pilihan_mode_rapi()
 	setup_meteran_label()
 	
+	# CEK APAKAH SEDANG DI SCENE TUTORIAL:
+	if get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial":
+		mulai_permainan()
+		return
+		
 	# CEK APAKAH PEMAIN SEDANG MENGULANG LEVEL (REPLAY):
 	var gm = get_node_or_null("/root/GameManager")
 	if gm and gm.is_replaying:
@@ -291,7 +296,8 @@ func mulai_permainan() -> void:
 	reset_dan_hentikan_timer()
 
 func _on_btn_tutorial_pressed() -> void:
-	print("Tutorial: Amati Ruang 1 dengan meteran [F], lalu tata Ruang 2 secara simetris!")
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scene/LevelTutorial.tscn")
 
 func _on_btn_settings_pressed() -> void:
 	print("Pengaturan diklik")
@@ -456,6 +462,11 @@ func tampilkan_hasil(hasil: Dictionary) -> void:
 		btn_close_result.grab_focus()
 
 func _on_btn_close_result_pressed() -> void:
+	if get_tree().current_scene and get_tree().current_scene.name == "LevelTutorial":
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://scene/Level01.tscn")
+		return
+		
 	var gm = get_node_or_null("/root/GameManager")
 	if status_evaluasi == "game_over":
 		# Ulangi Level: Muat ulang scene dan LANGSUNG main (tidak dilempar ke menu awal)
