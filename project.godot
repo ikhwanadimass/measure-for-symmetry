@@ -11,9 +11,11 @@ config_version=5
 [application]
 
 config/name="Measure For Symmetry"
-run/main_scene="uid://x4nekwnbkkyr"
+run/main_scene="uid://cnwj0okn3bjcg"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/main_scene="res://scenes/level_01/Level01.tscn"
+config/main_scene="res://scene/ui/loading_screen.tscn"
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.0784314, 0.0823529, 0.117647, 1)
 
 [autoload]
 

@@ -300,6 +300,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Setting"
 
 [node name="NotesScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=303345318]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -372,6 +373,7 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
 text = "Note"
 
 [node name="NewGameScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1884328678]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
