@@ -11,9 +11,9 @@ config_version=5
 [application]
 
 config/name="Measure For Symmetry"
-run/main_scene="uid://x4nekwnbkkyr"
+run/main_scene="res://scene/level/Level01.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/main_scene="res://scenes/level_01/Level01.tscn"
+config/main_scene="res://scene/level/Level01.tscn"
 
 [autoload]
 

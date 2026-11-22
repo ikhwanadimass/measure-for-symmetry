@@ -8,9 +8,9 @@ var gravity: float = ProjectSettings.get_setting("physics/2d/default_gravity")
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
-	# Mendeteksi Lantai/Dinding (Layer 1) DAN Perabotan (Layer 2)
-	# Sehingga pemain bisa melompat dan berdiri di atas bangku/meja!
-	collision_mask = 3
+	# Pemain hanya bertumbukan dengan Lantai/Dinding (Layer 1) dan menembus perabotan (Layer 2)
+	# agar pemain leluasa menumpuk dan mengatur objek tanpa terhalang collider perabotan.
+	collision_mask = 1
 
 func _physics_process(delta: float) -> void:
 	# 1. Tambah gravitasi saat melayang

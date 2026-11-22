@@ -3,63 +3,77 @@ extends Node
 # Batas toleransi ketepatan simetris (dalam piksel)
 const TOLERANSI: float = 8.0
 
+
 func hitung_evaluasi() -> Dictionary:
-	var all_items = get_parent().find_children("*", "InteractiveItem", true, false)
-	
-	var items_ruang1 = {}
-	var items_ruang2 = {}
-	
-	for item in all_items:
-		var item_id_bersih = item.item_id.strip_edges()
-		if item.global_position.x < 0:
+	var all_items: Array[Node] = get_parent().find_children("*", "InteractiveItem", true, false)
+
+	var items_ruang1: Dictionary[String, InteractiveItem] = {}
+	var items_ruang2: Array[InteractiveItem] = []
+
+	for node in all_items:
+		var item := node as InteractiveItem
+		if not item or not is_instance_valid(item) or item.is_queued_for_deletion() or not item.visible:
+			continue
+
+		var item_id_bersih: String = item.item_id.strip_edges()
+		if item_id_bersih == "":
+			continue
+
+		var in_room1: bool = (item.override_home_room == 1) or (item.override_home_room != 2 and item.global_position.x < 0.0)
+		if in_room1:
 			items_ruang1[item_id_bersih] = item
 		else:
-			items_ruang2[item_id_bersih] = item
+			items_ruang2.append(item)
 
 	var total_barang: int = items_ruang2.size()
 	if total_barang == 0:
 		return {
 			"grade": "sad",
 			"status": "game_over",
+			"passed": false,
+			"score": 0,
+			"total": 0,
+			"min_pass_score": 1,
 			"text": "GAME OVER\n(0/0)"
 		}
 
 	var berhasil_count: int = 0
+	var matched_ids: Dictionary[String, bool] = {}
 
-	for id in items_ruang2:
-		var item_r2 = items_ruang2[id]
-		if not items_ruang1.has(id):
+	for item_r2 in items_ruang2:
+		var id: String = item_r2.item_id.strip_edges()
+		if matched_ids.has(id) or not items_ruang1.has(id):
 			continue
-			
-		var item_r1 = items_ruang1[id]
-		# Posisi target simetri di Ruang 2 adalah cerminan dari Ruang 1
-		var target_x = -item_r1.global_position.x
-		var target_y = item_r1.global_position.y
-		
-		var selisih_x = abs(item_r2.global_position.x - target_x)
-		var selisih_y = abs(item_r2.global_position.y - target_y)
-		var selisih_total = sqrt(selisih_x * selisih_x + selisih_y * selisih_y)
-		
+
+		var item_r1: InteractiveItem = items_ruang1[id]
+		# Posisi target simetri di Ruang 2 adalah cerminan horizontal dari Ruang 1
+		var target_pos := Vector2(-item_r1.global_position.x, item_r1.global_position.y)
+		var selisih_total: float = item_r2.global_position.distance_to(target_pos)
+
 		if selisih_total <= TOLERANSI:
+			matched_ids[id] = true
 			berhasil_count += 1
 
-	var rasio: float = float(berhasil_count) / float(total_barang)
-	
-	if rasio >= 0.8:
+	var min_pass_score: int = LevelProgression.get_min_pass_score(total_barang)
+	if LevelProgression.is_level_passed(berhasil_count, total_barang):
+		var is_perfect: bool = berhasil_count == total_barang
+		var title: String = "BERHASIL!" if is_perfect else "LULUS!"
 		return {
-			"grade": "happy",
+			"grade": "happy" if is_perfect else "neutral",
 			"status": "success",
-			"text": "BERHASIL!\n(%d/%d)" % [berhasil_count, total_barang]
+			"passed": true,
+			"score": berhasil_count,
+			"total": total_barang,
+			"min_pass_score": min_pass_score,
+			"text": "%s\n(%d/%d)" % [title, berhasil_count, total_barang]
 		}
-	elif rasio >= 0.4:
-		return {
-			"grade": "neutral",
-			"status": "medium",
-			"text": "SEDANG\n(%d/%d)" % [berhasil_count, total_barang]
-		}
-	else:
-		return {
-			"grade": "sad",
-			"status": "game_over",
-			"text": "GAME OVER\n(%d/%d)" % [berhasil_count, total_barang]
-		}
+
+	return {
+		"grade": "sad",
+		"status": "game_over",
+		"passed": false,
+		"score": berhasil_count,
+		"total": total_barang,
+		"min_pass_score": min_pass_score,
+		"text": "GAME OVER\n(%d/%d)" % [berhasil_count, total_barang]
+	}

@@ -80,10 +80,14 @@ var waktu_sisa: float = 120.0
 var timer_berjalan: bool = false
 var status_evaluasi: String = ""
 var sudah_selesai_evaluasi: bool = false
+var _is_transitioning_level: bool = false
+var _level_unlocked_for_result: bool = false
+var level_buttons: Dictionary[int, TextureButton] = {}
 
 func _ready() -> void:
 	perbaiki_teks_tombol_otomatis()
 	setup_in_game_menu_otomatis()
+	setup_level_select_otomatis()
 	hubungkan_semua_tombol()
 	setup_pilihan_mode_rapi()
 	setup_meteran_label()
@@ -264,25 +268,90 @@ func _on_btn_new_game_pressed() -> void:
 	if input_save_name:
 		input_save_name.grab_focus()
 
+func _masuk_level_bersih(level_num: int) -> void:
+	if _is_transitioning_level:
+		return
+	_is_transitioning_level = true
+
+	var gm = get_node_or_null("/root/GameManager")
+	if gm and gm.has_method("load_level"):
+		gm.load_level(level_num, true)
+	else:
+		get_tree().paused = false
+		get_tree().call_deferred("reload_current_scene")
+
 func _on_btn_start_new_game_pressed() -> void:
 	var nama = input_save_name.text if input_save_name else "Player 1"
 	var mode = option_mode.selected if option_mode else 1
 	var gm = get_node_or_null("/root/GameManager")
 	if gm:
 		gm.buat_save_baru(nama, mode)
-	
-	mulai_permainan()
+
+	_masuk_level_bersih(1)
 
 func _on_btn_continue_game_pressed() -> void:
-	mulai_permainan()
+	var gm = get_node_or_null("/root/GameManager")
+	var level_target: int = int(gm.current_level) if gm else 1
+	_masuk_level_bersih(level_target)
+
+func setup_level_select_otomatis() -> void:
+	if not level_select_screen or not btn_level_1:
+		return
+	if not level_buttons.is_empty():
+		return
+
+	var gm = get_node_or_null("/root/GameManager")
+	var max_level: int = gm.get_max_level() if (gm and gm.has_method("get_max_level")) else 5
+
+	level_buttons[1] = btn_level_1
+	set_btn_label(btn_level_1, "Level 1")
+
+	var base_top: float = btn_level_1.offset_top
+	var btn_height: float = maxf(20.0, btn_level_1.offset_bottom - btn_level_1.offset_top)
+	var gap: float = 6.0
+	var insert_idx: int = btn_level_1.get_index() + 1
+
+	for lvl in range(2, max_level + 1):
+		var btn_lvl := btn_level_1.duplicate() as TextureButton
+		if not btn_lvl:
+			continue
+		btn_lvl.name = "BtnLevel%d" % lvl
+		var top_y: float = base_top + float(lvl - 1) * (btn_height + gap)
+		btn_lvl.offset_left = btn_level_1.offset_left
+		btn_lvl.offset_right = btn_level_1.offset_right
+		btn_lvl.offset_top = top_y
+		btn_lvl.offset_bottom = top_y + btn_height
+		set_btn_label(btn_lvl, "Level %d" % lvl)
+		btn_lvl.pressed.connect(_on_btn_level_pressed.bind(lvl))
+		level_select_screen.add_child(btn_lvl)
+		level_select_screen.move_child(btn_lvl, insert_idx)
+		insert_idx += 1
+		level_buttons[lvl] = btn_lvl
+
+	update_level_select_buttons()
+
+func update_level_select_buttons() -> void:
+	var gm = get_node_or_null("/root/GameManager")
+	var unlocked: int = int(gm.unlocked_level) if gm else 1
+	for lvl: int in level_buttons:
+		var btn: TextureButton = level_buttons[lvl]
+		if not is_instance_valid(btn):
+			continue
+		var is_unlocked: bool = lvl <= unlocked
+		btn.disabled = not is_unlocked
+		btn.focus_mode = Control.FOCUS_ALL if is_unlocked else Control.FOCUS_NONE
+		btn.modulate = Color(1.0, 1.0, 1.0, 1.0) if is_unlocked else Color(0.55, 0.55, 0.55, 0.75)
+		set_btn_label(btn, ("Level %d" % lvl) if is_unlocked else ("Level %d [X]" % lvl))
+
+func _on_btn_level_pressed(level_num: int) -> void:
+	var gm = get_node_or_null("/root/GameManager")
+	var unlocked: int = int(gm.unlocked_level) if gm else 1
+	if level_num > unlocked:
+		return
+	_masuk_level_bersih(level_num)
 
 func _on_btn_level_1_pressed() -> void:
-	var current_path = get_tree().current_scene.scene_file_path
-	if current_path == "res://scene/Level01.tscn":
-		mulai_permainan()
-	else:
-		get_tree().paused = false
-		get_tree().change_scene_to_file("res://scene/Level01.tscn")
+	_on_btn_level_pressed(1)
 
 func mulai_permainan() -> void:
 	is_game_started = true
@@ -304,7 +373,10 @@ func show_screen(screen_name: String) -> void:
 	if main_menu: main_menu.visible = (screen_name == "main")
 	if play_menu: play_menu.visible = (screen_name == "play_menu")
 	if new_game_screen: new_game_screen.visible = (screen_name == "new_game")
-	if level_select_screen: level_select_screen.visible = (screen_name == "level_select")
+	if level_select_screen:
+		level_select_screen.visible = (screen_name == "level_select")
+		if screen_name == "level_select":
+			update_level_select_buttons()
 	if notes_screen: notes_screen.visible = (screen_name == "notes")
 	if result_screen: result_screen.visible = (screen_name == "result")
 	if in_game_menu: in_game_menu.visible = (screen_name == "in_game")
@@ -312,6 +384,8 @@ func show_screen(screen_name: String) -> void:
 	call_deferred("_atur_fokus_layar", screen_name)
 
 func _atur_fokus_layar(screen_name: String) -> void:
+	if not is_inside_tree():
+		return
 	match screen_name:
 		"main":
 			if btn_play: btn_play.grab_focus()
@@ -323,7 +397,15 @@ func _atur_fokus_layar(screen_name: String) -> void:
 		"new_game":
 			if input_save_name: input_save_name.grab_focus()
 		"level_select":
-			if btn_level_1: btn_level_1.grab_focus()
+			var gm = get_node_or_null("/root/GameManager")
+			var unlocked: int = int(gm.unlocked_level) if gm else 1
+			var active_lvl: int = int(gm.current_level) if gm else 1
+			var preferred_lvl: int = clampi(active_lvl, 1, unlocked)
+			var focus_btn: TextureButton = level_buttons.get(preferred_lvl, btn_level_1) as TextureButton
+			if focus_btn and focus_btn.is_inside_tree() and not focus_btn.disabled:
+				focus_btn.grab_focus()
+			elif btn_level_1 and btn_level_1.is_inside_tree():
+				btn_level_1.grab_focus()
 		"in_game":
 			if btn_ig_resume: btn_ig_resume.grab_focus()
 		"result":
@@ -435,6 +517,7 @@ func _evaluasi_misi() -> void:
 
 func tampilkan_hasil(hasil: Dictionary) -> void:
 	sudah_selesai_evaluasi = true
+	_level_unlocked_for_result = false
 	status_evaluasi = hasil.get("status", "game_over")
 	var grade = hasil.get("grade", "happy")
 	
@@ -456,19 +539,42 @@ func tampilkan_hasil(hasil: Dictionary) -> void:
 		btn_close_result.grab_focus()
 
 func _on_btn_close_result_pressed() -> void:
+	if _is_transitioning_level:
+		return
+
 	var gm = get_node_or_null("/root/GameManager")
 	if status_evaluasi == "game_over":
+		_is_transitioning_level = true
 		# Ulangi Level: Muat ulang scene dan LANGSUNG main (tidak dilempar ke menu awal)
-		if gm:
-			gm.is_replaying = true
-		get_tree().paused = false
-		get_tree().call_deferred("reload_current_scene")
+		if gm and gm.has_method("retry_current_level"):
+			gm.retry_current_level()
+		else:
+			if gm:
+				gm.is_replaying = true
+			get_tree().paused = false
+			get_tree().call_deferred("reload_current_scene")
 	else:
-		# Berhasil / Sedang: Buka level berikutnya dan simpan ke disk
+		# Berhasil / Lulus: Tentukan level aktif sekarang sebelum unlock berikutnya
+		var active_level: int = int(gm.current_level) if gm else 1
+		var tree := get_tree()
+		if tree and tree.current_scene:
+			var spawner := tree.current_scene.find_child("Room2Spawner", true, false)
+			if spawner and spawner.has_method("get_active_level"):
+				active_level = int(spawner.call("get_active_level"))
+
 		if gm:
-			gm.buka_level_berikutnya()
-		# Tampilkan layar pilih level agar pemain bisa pilih level berikutnya
-		show_screen("level_select")
+			gm.current_level = active_level
+		if not _level_unlocked_for_result:
+			_level_unlocked_for_result = true
+			if gm:
+				gm.buka_level_berikutnya()
+
+		var next_level: int = active_level + 1
+		if gm and gm.has_method("has_level") and gm.has_level(next_level):
+			_masuk_level_bersih(next_level)
+		else:
+			update_level_select_buttons()
+			show_screen("level_select")
 
 # ===== SISTEM TIMER & MODE =====
 func mulai_timer_ruang2() -> void:

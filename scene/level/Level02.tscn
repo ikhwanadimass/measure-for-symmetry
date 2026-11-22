@@ -1,0 +1,46 @@
+[gd_scene format=4]
+
+[ext_resource type="PackedScene" path="res://scene/level/BaseLevel.tscn" id="1_base"]
+[ext_resource type="Script" uid="uid://cxe57ammajut3" path="res://script/interactive_item.gd" id="2_item"]
+[ext_resource type="Texture2D" uid="uid://2pcnptbssxo2" path="res://asset/tileseet/CartoonRooms/separate images/chair_front.png" id="3_chair"]
+[ext_resource type="Texture2D" uid="uid://dbj0b3axsskyj" path="res://asset/tileseet/CartoonRooms/separate images/table_small_1.png" id="4_table"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stool"]
+size = Vector2(14, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_table"]
+size = Vector2(30, 16)
+
+[node name="Level02" instance=ExtResource("1_base")]
+
+[node name="Room2Spawner" parent="." index="3"]
+level_override = 2
+
+[node name="Stool_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-146, -12)
+input_pickable = true
+script = ExtResource("2_item")
+can_support_stack = false
+
+[node name="Sprite2D" type="Sprite2D" parent="Stool_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("3_chair")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stool_Room1"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_stool")
+one_way_collision = true
+
+[node name="Table_Room1" type="AnimatableBody2D" parent="."]
+position = Vector2(-62, -9)
+input_pickable = true
+script = ExtResource("2_item")
+item_id = "table_01"
+
+[node name="Sprite2D" type="Sprite2D" parent="Table_Room1"]
+scale = Vector2(1.5227274, 1.2794117)
+texture = ExtResource("4_table")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Table_Room1"]
+shape = SubResource("RectangleShape2D_table")
+one_way_collision = true

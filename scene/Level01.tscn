@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://fm0cn0bp627g"]
+[gd_scene format=4 uid="uid://x4nekwnbkkyr"]
 
 [ext_resource type="PackedScene" uid="uid://ninafum7a0yl" path="res://scene/player/player.tscn" id="1_cd2m8"]
 [ext_resource type="Texture2D" uid="uid://djd7nujp0nmvv" path="res://asset/tileseet/CartoonRooms/tileset_v1.png" id="1_rcdr2"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://dbj0b3axsskyj" path="res://asset/tileseet/CartoonRooms/separate images/table_small_1.png" id="6_y4pno"]
 [ext_resource type="PackedScene" uid="uid://brux7uothsjvq" path="res://scene/measure_tool.tscn" id="7_w5f1j"]
 [ext_resource type="PackedScene" uid="uid://b5ksrpdv6tcj8" path="res://scene/ui/smartphone.tscn" id="8_y2gif"]
+[ext_resource type="Script" uid="uid://6jeyyubffnil" path="res://script/room2_spawner.gd" id="9_spawner"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rcdr2"]
 texture = ExtResource("1_rcdr2")
@@ -2071,18 +2072,6 @@ size = Vector2(19, 28)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wn15r"]
 size = Vector2(30, 16)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_u5y5k"]
-size = Vector2(14, 4)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mlow3"]
-size = Vector2(4, 28)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_6c6uy"]
-size = Vector2(16, 28)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_j5d0i"]
-size = Vector2(32, 16)
-
 [node name="Level01" type="Node2D" unique_id=63484962]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1142935380]
@@ -2175,66 +2164,9 @@ texture = ExtResource("6_y4pno")
 shape = SubResource("RectangleShape2D_wn15r")
 one_way_collision = true
 
-[node name="Stool_Room2" type="AnimatableBody2D" parent="." unique_id=1110897880]
-position = Vector2(188, -12)
-input_pickable = true
-script = ExtResource("3_bowmy")
-
-[node name="Sprite2D" type="Sprite2D" parent="Stool_Room2" unique_id=1058971284]
-position = Vector2(2.9206276e-06, 2.3841858e-07)
-scale = Vector2(1.5227274, 1.2794117)
-texture = ExtResource("4_ovpq8")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Stool_Room2" unique_id=812008766]
-position = Vector2(0, 2)
-shape = SubResource("RectangleShape2D_u5y5k")
-one_way_collision = true
-
-[node name="Lamp_Room2" type="AnimatableBody2D" parent="." unique_id=582514149]
-position = Vector2(60, -14)
-input_pickable = true
-script = ExtResource("3_bowmy")
-item_id = "lamp_01"
-
-[node name="Sprite2D" type="Sprite2D" parent="Lamp_Room2" unique_id=1492700189]
-position = Vector2(2.9206276e-06, 2.3841858e-07)
-scale = Vector2(1.5227274, 1.2794117)
-texture = ExtResource("5_y4pno")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Lamp_Room2" unique_id=1730192120]
-shape = SubResource("RectangleShape2D_mlow3")
-one_way_collision = true
-
-[node name="Plant_Room2" type="AnimatableBody2D" parent="." unique_id=197272616]
-position = Vector2(110, -15)
-input_pickable = true
-script = ExtResource("3_bowmy")
-item_id = "plant_01"
-
-[node name="Sprite2D" type="Sprite2D" parent="Plant_Room2" unique_id=712360409]
-position = Vector2(2.9206276e-06, 2.3841858e-07)
-scale = Vector2(1.5227274, 1.2794117)
-texture = ExtResource("5_j00oi")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Plant_Room2" unique_id=1416889074]
-shape = SubResource("RectangleShape2D_6c6uy")
-one_way_collision = true
-one_way_collision_margin = 4.0
-
-[node name="Table_Room2" type="AnimatableBody2D" parent="." unique_id=496241333]
-position = Vector2(150, -9)
-input_pickable = true
-script = ExtResource("3_bowmy")
-item_id = "table_01 "
-
-[node name="Sprite2D" type="Sprite2D" parent="Table_Room2" unique_id=1842046926]
-position = Vector2(2.9206276e-06, 2.3841858e-07)
-scale = Vector2(1.5227274, 1.2794117)
-texture = ExtResource("6_y4pno")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Table_Room2" unique_id=1427850665]
-shape = SubResource("RectangleShape2D_j5d0i")
-one_way_collision = true
+[node name="Room2Spawner" type="Node2D" parent="." unique_id=555114457]
+script = ExtResource("9_spawner")
+sync_room1_references = true
 
 [node name="Player" parent="." unique_id=1780209370 instance=ExtResource("1_cd2m8")]
 position = Vector2(-100, -20)
