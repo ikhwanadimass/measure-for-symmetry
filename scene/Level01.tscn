@@ -2122,6 +2122,8 @@ position = Vector2(-124, -14)
 input_pickable = true
 script = ExtResource("3_bowmy")
 item_id = "lamp_01"
+can_support_stack = false
+can_player_stand = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Lamp_Room1" unique_id=1684036053]
 position = Vector2(2.9206276e-06, 2.3841858e-07)
@@ -2138,6 +2140,8 @@ position = Vector2(-85, -15)
 input_pickable = true
 script = ExtResource("3_bowmy")
 item_id = "plant_01"
+can_support_stack = false
+can_player_stand = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Plant_Room1" unique_id=2132639131]
 position = Vector2(2.9206276e-06, 2.3841858e-07)

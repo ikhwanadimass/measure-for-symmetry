@@ -32,6 +32,8 @@ func run_tests() -> void:
 		"test_cleanup_and_rerandomization",
 		"test_all_gameplay_level_scenes_and_physics",
 		"test_drag_and_drop_mechanics",
+		"test_player_climb_and_stepping_stone",
+		"test_measure_tool_and_drag_coexistence",
 	]
 
 	for test_name in tests:
@@ -311,7 +313,8 @@ func test_all_gameplay_level_scenes_and_physics() -> bool:
 		var player := level.get_node_or_null("Player") as CharacterBody2D
 		assert_true(player != null, "Player exists in L%d" % lvl)
 		if player:
-			assert_eq(player.collision_mask, 1, "Player passes through props (collision_mask == 1) L%d" % lvl)
+			assert_eq(player.collision_mask, 3, "Player detects floor + climbable Layer 2 props (collision_mask == 3) L%d" % lvl)
+			assert_eq(player.get("jump_velocity"), -185.0, "Player jump_velocity tuned to -185.0 L%d" % lvl)
 
 		# Verify locked Camera2D parameters (TC-16)
 		var camera := level.get_node_or_null("Player/Camera2D") as Camera2D
@@ -364,6 +367,7 @@ func test_all_gameplay_level_scenes_and_physics() -> bool:
 				var it := n as InteractiveItem
 				if it and it.visible and not it.is_queued_for_deletion():
 					pre_physics_pos[it.get_instance_id()] = it.global_position
+					assert_eq(it.collision_layer, 2 if it.can_player_stand else 0, "Collision layer matches can_player_stand L%d %s" % [lvl, it.item_id])
 
 			for _pf in range(10):
 				await physics_frame
@@ -561,17 +565,20 @@ func test_drag_and_drop_mechanics() -> bool:
 	lamp.hold_until_dragged = true
 	lamp.position = Vector2(150.0, -12.0)
 	host.add_child(lamp)
-	lamp.configure_prop("lamp_test", lamp_tex, Vector2.ONE, Vector2(4.0, 24.0), Vector2.ZERO, false)
+	lamp.configure_prop("lamp_test", lamp_tex, Vector2.ONE, Vector2(4.0, 24.0), Vector2.ZERO, false, false)
 
 	var chair := PROP_SCENE.instantiate() as InteractiveItem
 	chair.override_home_room = 2
 	chair.hold_until_dragged = true
 	chair.position = Vector2(100.0, -8.0)
 	host.add_child(chair)
-	chair.configure_prop("chair_test", chair_tex, Vector2.ONE, Vector2(14.0, 4.0), Vector2(0.0, 2.0), true)
+	chair.configure_prop("chair_test", chair_tex, Vector2.ONE, Vector2(14.0, 4.0), Vector2(0.0, 2.0), true, true)
 
 	await process_frame
 
+	assert_eq(table.collision_layer, 2, "Climbable table uses Layer 2")
+	assert_eq(chair.collision_layer, 2, "Climbable chair uses Layer 2")
+	assert_eq(lamp.collision_layer, 0, "Non-climbable lamp leaves Layer 0")
 	assert_eq(chair.sync_to_physics, false, "InteractiveItem sets sync_to_physics = false for responsive dragging")
 	assert_eq(InteractiveItem.MAX_DISTANCE, 55.0, "InteractiveItem.MAX_DISTANCE expanded to 55.0")
 
@@ -604,4 +611,223 @@ func test_drag_and_drop_mechanics() -> bool:
 
 	host.queue_free()
 	await process_frame
+	return true
+
+
+func _spawn_catalog_prop(parent_node: Node2D, prop_index: int, pos: Vector2) -> InteractiveItem:
+	var def: Dictionary = LevelProgression.get_prop_definition(prop_index)
+	var item := PROP_SCENE.instantiate() as InteractiveItem
+	item.override_home_room = 2
+	item.hold_until_dragged = false
+	item.position = pos
+	parent_node.add_child(item)
+	var tex_path: String = def.get("texture_path", "")
+	var tex := load(tex_path) as Texture2D if tex_path != "" else null
+	var id_str: String = def.get("item_id", "prop")
+	var sz: Vector2 = def.get("shape_size", Vector2(14.0, 4.0))
+	var off: Vector2 = def.get("shape_offset", Vector2.ZERO)
+	var support: bool = bool(def.get("can_support_stack", true))
+	var stand: bool = bool(def.get("can_player_stand", true))
+	item.configure_prop(id_str, tex, LevelProgression.DEFAULT_PROP_SCALE, sz, off, support, stand)
+	item.global_position.y = item.floor_y
+	return item
+
+
+func test_player_climb_and_stepping_stone() -> bool:
+	var host := Node2D.new()
+	root.add_child(host)
+
+	var floor_body := StaticBody2D.new()
+	floor_body.collision_layer = 1
+	floor_body.collision_mask = 0
+	var floor_col := CollisionShape2D.new()
+	var floor_rect := RectangleShape2D.new()
+	floor_rect.size = Vector2(400.0, 20.0)
+	floor_col.shape = floor_rect
+	floor_col.position = Vector2(100.0, 10.0)
+	floor_body.add_child(floor_col)
+	host.add_child(floor_body)
+
+	var stool := _spawn_catalog_prop(host, 0, Vector2(50.0, -10.0))       # top ~ -10.87
+	var table := _spawn_catalog_prop(host, 3, Vector2(90.0, -10.0))       # top ~ -16.32
+	var bookcase := _spawn_catalog_prop(host, 8, Vector2(140.0, -14.0))   # top ~ -26.43
+	var lamp := _spawn_catalog_prop(host, 1, Vector2(180.0, -14.0))       # non-climbable (layer 0)
+
+	var player_scene := load("res://scene/player/player.tscn") as PackedScene
+	var player := player_scene.instantiate() as CharacterBody2D
+	player.position = Vector2(30.0, -16.0)
+	host.add_child(player)
+
+	await process_frame
+	for _pf in range(4):
+		await physics_frame
+
+	# 1. Horizontal pass-through: walk through side of stool without being blocked
+	Input.action_press("move_right")
+	for _pf in range(20):
+		await physics_frame
+	Input.action_release("move_right")
+	assert_true(player.global_position.x > 65.0, "Player walks freely past stool side (x=%.2f)" % player.global_position.x)
+
+	# 2. Direct jump from floor onto stool (~10.87 px)
+	player.global_position = Vector2(stool.global_position.x, -16.0)
+	player.velocity = Vector2.ZERO
+	for _pf in range(3):
+		await physics_frame
+	player.velocity.y = float(player.get("jump_velocity"))
+	for _pf in range(30):
+		await physics_frame
+	var feet_stool: float = player.global_position.y + 16.0
+	assert_true(player.is_on_floor() and feet_stool <= -9.5, "Player lands on top of stool (feet=%.2f)" % feet_stool)
+	assert_eq(bool(player.call("_is_standing_on_one_way_prop")), true, "Player detects standing on one-way prop")
+
+	player.set("_drop_through_timer", 0.15)
+	for _pf in range(16):
+		await physics_frame
+	var feet_after_drop: float = player.global_position.y + 16.0
+	assert_true(player.is_on_floor() and absf(feet_after_drop) < 1.0, "Player drops through one-way stool to floor (feet=%.2f)" % feet_after_drop)
+
+	# 3. Direct jump from floor onto table (~16.32 px)
+	player.global_position = Vector2(table.global_position.x, -16.0)
+	player.velocity = Vector2.ZERO
+	for _pf in range(3):
+		await physics_frame
+	player.velocity.y = float(player.get("jump_velocity"))
+	for _pf in range(30):
+		await physics_frame
+	var feet_table: float = player.global_position.y + 16.0
+	assert_true(player.is_on_floor() and feet_table <= -15.0, "Player lands on top of table (feet=%.2f)" % feet_table)
+
+	# 4. Tall bookcase (~26.43 px) cannot be reached by a single jump from floor
+	player.global_position = Vector2(bookcase.global_position.x, -16.0)
+	player.velocity = Vector2.ZERO
+	for _pf in range(3):
+		await physics_frame
+	player.velocity.y = float(player.get("jump_velocity"))
+	for _pf in range(35):
+		await physics_frame
+	var feet_missed_bookcase: float = player.global_position.y + 16.0
+	assert_true(player.is_on_floor() and absf(feet_missed_bookcase) < 1.0, "Tall bookcase requires stepping stone from floor (feet=%.2f)" % feet_missed_bookcase)
+
+	# 5. Stepping-stone climb: place stool beside bookcase, jump from stool top onto bookcase
+	stool.global_position.x = bookcase.global_position.x - 20.0
+	player.global_position = Vector2(stool.global_position.x, -27.5)
+	player.velocity = Vector2.ZERO
+	for _pf in range(12):
+		await physics_frame
+	assert_true(player.is_on_floor() and (player.global_position.y + 16.0) <= -9.5, "Player stands on stepping-stone stool")
+
+	player.velocity.y = float(player.get("jump_velocity"))
+	Input.action_press("move_right")
+	for _pf in range(9):
+		await physics_frame
+	Input.action_release("move_right")
+	for _pf in range(24):
+		await physics_frame
+	var feet_bookcase: float = player.global_position.y + 16.0
+	assert_true(player.is_on_floor() and feet_bookcase <= -25.0, "Player climbs onto bookcase via stool stepping stone (feet=%.2f)" % feet_bookcase)
+
+	# 6. Non-climbable lamp (can_player_stand = false): player falls cleanly through to floor
+	player.global_position = Vector2(lamp.global_position.x, -36.0)
+	player.velocity = Vector2.ZERO
+	for _pf in range(32):
+		await physics_frame
+	var feet_lamp: float = player.global_position.y + 16.0
+	assert_true(player.is_on_floor() and absf(feet_lamp) < 1.0, "Player falls through non-climbable lamp to floor (feet=%.2f)" % feet_lamp)
+
+	Input.action_release("move_right")
+	host.queue_free()
+	await process_frame
+	return true
+
+
+func test_measure_tool_and_drag_coexistence() -> bool:
+	var gm := root.get_node_or_null("GameManager")
+	var orig_level: int = int(gm.get("current_level")) if gm else 1
+	var orig_replaying: bool = bool(gm.get("is_replaying")) if gm else false
+	if gm:
+		gm.set("current_level", 2)
+		gm.set("is_replaying", true)
+
+	var packed := load("res://scene/level/Level02.tscn") as PackedScene
+	change_scene_to_packed(packed)
+	await process_frame
+	await process_frame
+
+	var level := current_scene as Node2D
+	var player := level.get_node_or_null("Player") as CharacterBody2D
+	var mt := level.get_node_or_null("MeasureTool")
+	assert_true(level != null and player != null and mt != null, "Level02, Player, and MeasureTool loaded")
+
+	var target_item: InteractiveItem = null
+	for n in level.find_children("*", "InteractiveItem", true, false):
+		var it := n as InteractiveItem
+		if it and it.visible and not it.is_queued_for_deletion() and it.home_room == 2:
+			target_item = it
+			break
+	assert_true(target_item != null, "Found Room 2 InteractiveItem for coexistence test")
+
+	if player and mt and target_item:
+		player.global_position = Vector2(target_item.global_position.x, -16.0)
+		mt.set("player", player)
+		target_item.player = player
+
+		mt.call("toggle_tool")
+		assert_eq(bool(mt.get("is_active")), true, "MeasureTool activated")
+		assert_eq(mt.get("MAX_INTERACT_DISTANCE"), 55.0, "MeasureTool MAX_INTERACT_DISTANCE aligned to 55.0")
+
+		# Yield helper reports true only while active and unlocked
+		mt.set("is_locked", false)
+		assert_eq(bool(target_item.call("_should_yield_to_measure_tool")), true, "InteractiveItem yields while MeasureTool active & unlocked")
+
+		# Case A: Locked ruler allows immediate drag without disturbing lock
+		mt.set("anchor_point", Vector2(player.global_position.x - 10.0, -20.0))
+		mt.set("is_anchored", true)
+		mt.set("is_locked", true)
+		assert_eq(bool(target_item.call("_should_yield_to_measure_tool")), false, "InteractiveItem does not yield when ruler is locked")
+		var consumed_a: bool = bool(mt.call("_handle_left_press", Vector2(200.0, 200.0), target_item.global_position))
+		assert_eq(consumed_a, true, "Case A locked ruler press handled")
+		assert_eq(target_item.is_dragging, true, "Case A drag starts while ruler is locked")
+		assert_eq(bool(mt.get("is_locked")), true, "Case A locked ruler remains locked")
+		target_item.stop_drag()
+
+		# Case B: Unlocked ruler + mouse motion >= 6 px drags item without anchoring ruler
+		mt.call("reset_measurement")
+		var consumed_b: bool = bool(mt.call("_handle_left_press", Vector2(200.0, 200.0), target_item.global_position))
+		assert_eq(consumed_b, true, "Case B unlocked ruler press on item pending")
+		assert_eq(target_item.is_dragging, false, "Case B drag waits for motion or release")
+		mt.call("_handle_mouse_motion", Vector2(210.0, 200.0))
+		assert_eq(target_item.is_dragging, true, "Case B >=6px drag starts item drag")
+		assert_eq(bool(mt.get("is_anchored")), false, "Case B dragging item does not anchor ruler")
+		mt.call("_handle_left_release")
+		assert_eq(bool(mt.get("is_anchored")), false, "Case B release after drag does not anchor ruler")
+		target_item.stop_drag()
+
+		# Case C: Unlocked ruler + quick click (< 6 px motion) anchors ruler without dragging item
+		var consumed_c: bool = bool(mt.call("_handle_left_press", Vector2(200.0, 200.0), target_item.global_position))
+		mt.call("_handle_mouse_motion", Vector2(202.0, 200.0))
+		mt.call("_handle_left_release")
+		assert_eq(consumed_c, true, "Case C quick click handled")
+		assert_eq(target_item.is_dragging, false, "Case C quick click does not drag item")
+		assert_eq(bool(mt.get("is_anchored")), true, "Case C quick click anchors ruler")
+		assert_eq(bool(mt.get("is_locked")), false, "Case C ruler remains unlocked for measurement")
+
+		# Case D: While ruler is anchored & stretching, drag >= 6 px moves item without locking ruler
+		var consumed_d: bool = bool(mt.call("_handle_left_press", Vector2(200.0, 200.0), target_item.global_position))
+		mt.call("_handle_mouse_motion", Vector2(208.0, 200.0))
+		assert_eq(consumed_d, true, "Case D drag press while anchored handled")
+		assert_eq(target_item.is_dragging, true, "Case D item drags while ruler actively stretches")
+		assert_eq(bool(mt.get("is_anchored")), true, "Case D ruler remains anchored during drag")
+		assert_eq(bool(mt.get("is_locked")), false, "Case D ruler not prematurely locked by drag")
+		target_item.stop_drag()
+		mt.call("reset_measurement")
+
+	paused = false
+	unload_current_scene()
+	await process_frame
+
+	if gm:
+		gm.set("current_level", orig_level)
+		gm.set("is_replaying", orig_replaying)
+
 	return true

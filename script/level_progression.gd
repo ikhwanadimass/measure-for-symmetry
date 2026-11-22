@@ -13,6 +13,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2(0.0, 2.0),
 		"room1_pos": Vector2(-146.0, -12.0),
 		"can_support_stack": false,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "lamp_01",
@@ -21,6 +22,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2.ZERO,
 		"room1_pos": Vector2(-124.0, -14.0),
 		"can_support_stack": false,
+		"can_player_stand": false,
 	},
 	{
 		"item_id": "plant_01",
@@ -29,6 +31,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2(0.5, 0.0),
 		"room1_pos": Vector2(-85.0, -15.0),
 		"can_support_stack": false,
+		"can_player_stand": false,
 	},
 	{
 		"item_id": "table_01",
@@ -37,6 +40,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2.ZERO,
 		"room1_pos": Vector2(-50.0, -9.0),
 		"can_support_stack": true,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "nightstand_01",
@@ -45,6 +49,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2.ZERO,
 		"room1_pos": Vector2(-181.0, -7.0),
 		"can_support_stack": true,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "chair_side_01",
@@ -53,6 +58,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2(0.0, 2.0),
 		"room1_pos": Vector2(-164.0, -11.0),
 		"can_support_stack": false,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "dresser_small_01",
@@ -61,6 +67,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2.ZERO,
 		"room1_pos": Vector2(-152.0, -8.0),
 		"can_support_stack": true,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "table_side_01",
@@ -69,6 +76,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2.ZERO,
 		"room1_pos": Vector2(-121.0, -9.0),
 		"can_support_stack": true,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "bookcase_small_01",
@@ -77,6 +85,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2.ZERO,
 		"room1_pos": Vector2(-89.0, -14.0),
 		"can_support_stack": true,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "chair_back_01",
@@ -85,6 +94,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2(0.0, 2.0),
 		"room1_pos": Vector2(-24.0, -26.05),
 		"can_support_stack": false,
+		"can_player_stand": true,
 	},
 	{
 		"item_id": "dresser_small_02",
@@ -93,6 +103,7 @@ const PROP_CATALOG: Array[Dictionary] = [
 		"shape_offset": Vector2.ZERO,
 		"room1_pos": Vector2(-24.0, -8.0),
 		"can_support_stack": true,
+		"can_player_stand": true,
 	},
 ]
 

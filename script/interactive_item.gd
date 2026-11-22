@@ -5,6 +5,7 @@ class_name InteractiveItem
 @export var hold_until_dragged: bool = false
 @export var override_home_room: int = 0
 @export var can_support_stack: bool = true
+@export var can_player_stand: bool = true
 
 const MAX_DISTANCE: float = 55.0
 const FALL_SPEED: float = 300.0
@@ -25,10 +26,13 @@ var floor_y: float = -12.0
 func _ready() -> void:
 	input_pickable = true
 	sync_to_physics = false
+	add_to_group("interactive_items")
 
-	# Pindahkan barang ke Collision Layer 2 (Props) agar terpisah dari tembok/lantai
-	collision_layer = 2
+	# Layer 2 untuk perabotan pijakan satu-arah; non-pijakan (lampu/tanaman) di layer 0 agar tembus penuh
+	collision_layer = 2 if can_player_stand else 0
 	collision_mask = 0
+	if collision_shape:
+		collision_shape.one_way_collision = true
 
 	player = _find_player()
 	if override_home_room == 1 or override_home_room == 2:
@@ -49,6 +53,10 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if _active_drag_item == self:
 		_active_drag_item = null
+
+func get_platform_top_y() -> float:
+	var info: Dictionary = get_shape_info()
+	return global_position.y + float(info.get("top", -get_visual_bottom_offset()))
 
 
 func _find_player() -> CharacterBody2D:
@@ -74,17 +82,20 @@ func _find_player() -> CharacterBody2D:
 	return null
 
 
-## Configures item identity, sprite texture/scale, collision shape, and stackability.
+## Configures item identity, sprite texture/scale, collision shape, stackability, and player platforming.
 func configure_prop(
 	new_item_id: String,
 	new_texture: Texture2D,
 	new_sprite_scale: Vector2,
 	new_shape_size: Vector2,
 	new_shape_offset: Vector2 = Vector2.ZERO,
-	new_can_support_stack: bool = true
+	new_can_support_stack: bool = true,
+	new_can_player_stand: bool = true
 ) -> void:
 	item_id = new_item_id.strip_edges()
 	can_support_stack = new_can_support_stack
+	can_player_stand = new_can_player_stand
+	collision_layer = 2 if can_player_stand else 0
 	var target_sprite := get_node_or_null("Sprite2D") as Sprite2D
 	if target_sprite:
 		if new_texture:
@@ -180,13 +191,44 @@ func cari_lantai_terdekat(cek_x: float, cek_y: float) -> float:
 
 	return target_pijakan
 
-func _is_measure_tool_active() -> bool:
+static func find_pickable_at(tree: SceneTree, world_pos: Vector2) -> InteractiveItem:
+	if not tree or tree.paused:
+		return null
+	if _active_drag_item != null and is_instance_valid(_active_drag_item):
+		return null
+	var search_root: Node = tree.current_scene
+	if not search_root:
+		return null
+
+	var best_item: InteractiveItem = null
+	var best_dist: float = INF
+	var all_items: Array[Node] = search_root.find_children("*", "InteractiveItem", true, false)
+	for other_node in all_items:
+		var other := other_node as InteractiveItem
+		if not other or not is_instance_valid(other) or other.is_queued_for_deletion():
+			continue
+		if not other.visible or other.is_dragging:
+			continue
+		if not other.player or not is_instance_valid(other.player):
+			other.player = other._find_player()
+		if not other._is_player_in_same_room():
+			continue
+		if not other.contains_global_point(world_pos) or other._distance_to_player() > MAX_DISTANCE:
+			continue
+		var d: float = other.global_position.distance_to(world_pos)
+		if best_item == null or d < best_dist - 0.5 or (absf(d - best_dist) <= 0.5 and other.get_index() > best_item.get_index()):
+			best_item = other
+			best_dist = d
+
+	return best_item
+
+func _should_yield_to_measure_tool() -> bool:
 	var tree := get_tree()
 	if not tree or not tree.current_scene:
 		return false
 	var mt := tree.current_scene.find_child("MeasureTool", true, false)
-	if mt and "is_active" in mt:
-		return bool(mt.get("is_active"))
+	if mt and "is_active" in mt and "is_locked" in mt:
+		return bool(mt.get("is_active")) and not bool(mt.get("is_locked"))
 	return false
 
 func _is_player_in_same_room() -> bool:
@@ -227,41 +269,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _active_drag_item != null and is_instance_valid(_active_drag_item):
 		return
-	if _is_measure_tool_active():
-		return
-
-	if not player or not is_instance_valid(player):
-		player = _find_player()
-	if not _is_player_in_same_room():
+	if _should_yield_to_measure_tool():
 		return
 
 	var mouse_pos: Vector2 = get_global_mouse_position()
-	if not contains_global_point(mouse_pos):
-		return
-	if _distance_to_player() > MAX_DISTANCE:
-		return
-
-	var best_item: InteractiveItem = self
-	var best_dist: float = global_position.distance_to(mouse_pos)
-	var search_root: Node = tree.current_scene if tree.current_scene else get_parent()
-	if search_root:
-		var all_items: Array[Node] = search_root.find_children("*", "InteractiveItem", true, false)
-		for other_node in all_items:
-			var other := other_node as InteractiveItem
-			if not other or other == self or not is_instance_valid(other) or other.is_queued_for_deletion():
-				continue
-			if not other.visible or other.home_room != home_room or other.is_dragging:
-				continue
-			other.player = player
-			if not other.contains_global_point(mouse_pos) or other._distance_to_player() > MAX_DISTANCE:
-				continue
-			var d: float = other.global_position.distance_to(mouse_pos)
-			if d < best_dist - 0.5 or (absf(d - best_dist) <= 0.5 and other.get_index() > best_item.get_index()):
-				best_item = other
-				best_dist = d
-
-	best_item.start_drag(mouse_pos)
-	get_viewport().set_input_as_handled()
+	var picked: InteractiveItem = InteractiveItem.find_pickable_at(tree, mouse_pos)
+	if picked:
+		picked.start_drag(mouse_pos)
+		get_viewport().set_input_as_handled()
 
 func _input(event: InputEvent) -> void:
 	if is_dragging and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:

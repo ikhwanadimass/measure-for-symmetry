@@ -145,7 +145,8 @@ func spawn_level_objects(level: int, player_spawn: Vector2 = player_spawn_positi
 			var off: Vector2 = desc.get("shape_offset", Vector2.ZERO)
 			var id_str: String = desc.get("item_id", "prop")
 			var support_flag: bool = bool(desc.get("can_support_stack", true))
-			item.configure_prop(id_str, tex, sc, sz, off, support_flag)
+			var stand_flag: bool = bool(desc.get("can_player_stand", true))
+			item.configure_prop(id_str, tex, sc, sz, off, support_flag, stand_flag)
 
 		add_child(obj_instance)
 		_spawned_room2_nodes.append(obj_instance)
@@ -784,7 +785,7 @@ func _set_manual_item_active(item: InteractiveItem, active: bool) -> void:
 	if not is_instance_valid(item):
 		return
 	item.visible = active
-	item.collision_layer = 2 if active else 0
+	item.collision_layer = (2 if item.can_player_stand else 0) if active else 0
 	var col := item.get_node_or_null("CollisionShape2D") as CollisionShape2D
 	if col:
 		col.set_deferred("disabled", not active)
@@ -821,6 +822,7 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 				"shape_size": shape_size,
 				"shape_offset": shape_offset,
 				"can_support_stack": r1.can_support_stack,
+				"can_player_stand": r1.can_player_stand,
 			})
 		else:
 			var def: Dictionary = LevelProgression.get_prop_definition(i)
@@ -830,6 +832,7 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 			var def_size: Vector2 = def.get("shape_size", Vector2(14.0, 4.0))
 			var def_offset: Vector2 = def.get("shape_offset", Vector2.ZERO)
 			var def_support: bool = bool(def.get("can_support_stack", true))
+			var def_stand: bool = bool(def.get("can_player_stand", true))
 
 			if sync_room1_references and parent_node and object_scene:
 				var r1_extra := object_scene.instantiate() as Node2D
@@ -842,7 +845,7 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 						var r1_item := r1_extra as InteractiveItem
 						r1_item.override_home_room = 1
 						r1_item.hold_until_dragged = false
-						r1_item.configure_prop(def_id, tex, LevelProgression.DEFAULT_PROP_SCALE, def_size, def_offset, def_support)
+						r1_item.configure_prop(def_id, tex, LevelProgression.DEFAULT_PROP_SCALE, def_size, def_offset, def_support, def_stand)
 					parent_node.add_child(r1_extra)
 					_spawned_room1_nodes.append(r1_extra)
 
@@ -854,6 +857,7 @@ func _prepare_prop_descriptors(total_objects: int) -> Array[Dictionary]:
 				"shape_size": def_size,
 				"shape_offset": def_offset,
 				"can_support_stack": def_support,
+				"can_player_stand": def_stand,
 			})
 
 	return descriptors

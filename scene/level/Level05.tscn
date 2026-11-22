@@ -142,6 +142,7 @@ input_pickable = true
 script = ExtResource("2_item")
 item_id = "lamp_01"
 can_support_stack = false
+can_player_stand = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Lamp_Room1"]
 scale = Vector2(1.5227274, 1.2794117)
@@ -173,6 +174,7 @@ input_pickable = true
 script = ExtResource("2_item")
 item_id = "plant_01"
 can_support_stack = false
+can_player_stand = false
 
 [node name="Sprite2D" type="Sprite2D" parent="Plant_Room1"]
 scale = Vector2(1.5227274, 1.2794117)
