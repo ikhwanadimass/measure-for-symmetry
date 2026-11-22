@@ -396,7 +396,6 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_rvdje")
 text = "Note"
 
 [node name="NewGameScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1884328678]
-visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -452,10 +451,10 @@ text = "GAME BARU"
 
 [node name="FormContainer" type="VBoxContainer" parent="PhoneContainer/PhoneFrame/NewGameScreen" unique_id=373755640]
 layout_mode = 0
-offset_left = -37.0
-offset_top = -58.0
-offset_right = 83.0
-offset_bottom = 68.0
+offset_left = -51.0
+offset_top = -59.0
+offset_right = 69.0
+offset_bottom = 67.0
 
 [node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1515209964]
 layout_mode = 2
@@ -563,6 +562,7 @@ theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "Level 1"
 
 [node name="ResultScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1859886185]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
