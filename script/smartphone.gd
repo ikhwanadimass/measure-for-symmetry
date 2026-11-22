@@ -30,6 +30,7 @@ const EMOJI_SAD = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E29.
 @onready var main_menu: VBoxContainer = $PhoneContainer/PhoneFrame.get_node_or_null("MainMenu")
 @onready var play_menu: VBoxContainer = $PhoneContainer/PhoneFrame.get_node_or_null("PlayMenu")
 @onready var new_game_screen: Control = $PhoneContainer/PhoneFrame.get_node_or_null("NewGameScreen")
+@onready var load_game_screen: Control = $PhoneContainer/PhoneFrame.get_node_or_null("LoadGameScreen")
 @onready var level_select_screen: Control = $PhoneContainer/PhoneFrame.get_node_or_null("LevelSelectScreen")
 @onready var notes_screen: Control = $PhoneContainer/PhoneFrame.get_node_or_null("NotesScreen")
 @onready var result_screen: Control = $PhoneContainer/PhoneFrame.get_node_or_null("ResultScreen")
@@ -62,6 +63,11 @@ const EMOJI_SAD = preload("res://asset/free-emojis-pixelart/emojis-x2-64x64/E29.
 @onready var option_mode: OptionButton = $PhoneContainer/PhoneFrame.get_node_or_null("NewGameScreen/FormContainer/OptionMode")
 @onready var btn_start_new_game: Button = $PhoneContainer/PhoneFrame.get_node_or_null("NewGameScreen/FormContainer/BtnStartNewGame")
 @onready var btn_back_new_game: Button = $PhoneContainer/PhoneFrame.get_node_or_null("NewGameScreen/BtnBackNewGame")
+
+# Elemen LoadGameScreen (Dinamis Profil Save)
+@onready var save_list_container: VBoxContainer = $PhoneContainer/PhoneFrame.get_node_or_null("LoadGameScreen/SaveScroll/SaveListContainer")
+@onready var label_no_save: Label = $PhoneContainer/PhoneFrame.get_node_or_null("LoadGameScreen/LabelNoSave")
+@onready var btn_back_load: Button = $PhoneContainer/PhoneFrame.get_node_or_null("LoadGameScreen/BtnBackLoad")
 
 # Elemen LevelSelectScreen
 @onready var btn_back_level_select: Button = $PhoneContainer/PhoneFrame.get_node_or_null("LevelSelectScreen/BtnBackLevelSelect")
@@ -130,7 +136,7 @@ func _ready() -> void:
 		
 	# 3. Kondisi saat game pertama kali dibuka (Menu Utama):
 	is_game_started = false
-	set_hud_visibilitas(false)  # Sembunyikan HUD dan Timer di awal!
+	set_hud_visibilitas(false)
 	show_screen("main")
 	open_phone()
 
@@ -271,7 +277,7 @@ func _on_btn_back_settings_pressed() -> void:
 		show_screen("main")
 
 func setup_pilihan_mode_rapi() -> void:
-	if not option_mode or not form_container: return
+	if not option_mode: return
 		
 	option_mode.clear()
 	option_mode.add_item("Mode Santai", 0)
@@ -279,23 +285,22 @@ func setup_pilihan_mode_rapi() -> void:
 	option_mode.add_item("Mode Sulit", 2)
 	option_mode.add_item("Mode Bebas", 3)
 	
-	option_mode.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
-	if input_save_name: input_save_name.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
-	if btn_start_new_game: btn_start_new_game.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
-	if btn_back_new_game: btn_back_new_game.add_theme_font_size_override("font_size", UKURAN_FONT_FORM)
-		
-	if not label_mode_desc:
-		label_mode_desc = Label.new()
-		label_mode_desc.name = "LabelModeDesc"
-		label_mode_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label_mode_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label_mode_desc.add_theme_color_override("font_color", Color(0.15, 0.15, 0.15, 1.0))
-		label_mode_desc.add_theme_font_size_override("font_size", UKURAN_FONT_DESC)
-		form_container.add_child(label_mode_desc)
-		if btn_start_new_game:
-			form_container.move_child(label_mode_desc, btn_start_new_game.get_index())
+	# Mengaktifkan deskripsi mode secara rapi (font 9px agar pas di kertas)
+	if form_container:
+		label_mode_desc = form_container.get_node_or_null("LabelModeDesc")
+		if not label_mode_desc:
+			label_mode_desc = Label.new()
+			label_mode_desc.name = "LabelModeDesc"
+			label_mode_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			label_mode_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			label_mode_desc.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2, 1.0))
+			label_mode_desc.add_theme_font_size_override("font_size", 9)
+			form_container.add_child(label_mode_desc)
+			if btn_start_new_game:
+				form_container.move_child(label_mode_desc, btn_start_new_game.get_index())
 			
-	option_mode.item_selected.connect(_on_mode_item_selected)
+	if not option_mode.item_selected.is_connected(_on_mode_item_selected):
+		option_mode.item_selected.connect(_on_mode_item_selected)
 	option_mode.selected = 1
 	_on_mode_item_selected(1)
 
@@ -337,6 +342,13 @@ func hubungkan_semua_tombol() -> void:
 		show_screen("play_menu")
 	)
 	
+	# Layar Muat Game (Dinamis)
+	if btn_back_load: btn_back_load.pressed.connect(func():
+		var am = get_node_or_null("/root/AudioManager")
+		if am: am.play_sfx("click")
+		show_screen("main")
+	)
+
 	if btn_back_level_select: btn_back_level_select.pressed.connect(func(): 
 		var am = get_node_or_null("/root/AudioManager")
 		if am: am.play_sfx("click")
@@ -353,7 +365,6 @@ func hubungkan_tombol_level_tscn() -> void:
 	if not level_select_screen:
 		return
 		
-	# Mencari semua tombol level yang dibuat di tscn (misal: BtnLevel1, BtnLevel2, dst.)
 	var buttons = level_select_screen.find_children("BtnLevel*", "BaseButton", true, false)
 	for btn in buttons:
 		var nomor_str = btn.name.replace("BtnLevel", "").strip_edges()
@@ -361,7 +372,6 @@ func hubungkan_tombol_level_tscn() -> void:
 			var lvl_num = nomor_str.to_int()
 			level_buttons[lvl_num] = btn
 			
-			# Hubungkan aksi klik sekali saja
 			if not btn.pressed.is_connected(_on_level_btn_clicked.bind(lvl_num)):
 				btn.pressed.connect(_on_level_btn_clicked.bind(lvl_num))
 
@@ -385,17 +395,98 @@ func update_level_select_buttons() -> void:
 		var is_unlocked: bool = (lvl <= unlocked_level)
 		btn.disabled = not is_unlocked
 		btn.mouse_filter = Control.MOUSE_FILTER_STOP if is_unlocked else Control.MOUSE_FILTER_IGNORE
-		# Redupkan tombol jika level masih terkunci
 		btn.modulate = Color(1, 1, 1, 1) if is_unlocked else Color(0.4, 0.4, 0.4, 0.6)
+# ====================================================================
+
+# ================= SISTEM DAFTAR SAVE DINAMIS (MUAT GAME) ===========
+func _on_btn_load_progress_pressed() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am: am.play_sfx("click")
+	update_load_screen_ui()
+	show_screen("load_game")
+
+func update_load_screen_ui() -> void:
+	if not save_list_container: return
+	
+	# Hapus daftar item sebelumnya
+	for child in save_list_container.get_children():
+		child.queue_free()
+		
+	var gm = get_node_or_null("/root/GameManager")
+	var saves = gm.saves_list if gm else []
+	
+	# Jika belum ada save, tampilkan label keterangan
+	if saves.is_empty():
+		if label_no_save: label_no_save.visible = true
+		return
+		
+	if label_no_save: label_no_save.visible = false
+	
+	# Render setiap save yang pernah dibuat
+	for s in saves:
+		var s_id: String = str(s.get("id", ""))
+		var s_name: String = str(s.get("save_name", "Player"))
+		var s_lvl: int = int(s.get("unlocked_level", 1))
+		var s_mode: int = int(s.get("current_mode", 1))
+		var mode_name = "Biasa"
+		if gm and gm.mode_data.has(s_mode):
+			mode_name = gm.mode_data[s_mode].get("name", "Biasa").replace("Mode ", "")
+			
+		var row = HBoxContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 3)
+		
+		# Tombol Profil Save
+		var btn = Button.new()
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.add_theme_font_size_override("font_size", 9)
+		btn.add_theme_color_override("font_color", Color(0, 0, 0, 1))
+		
+		var active_mark = " ★" if (gm and gm.active_save_id == s_id) else ""
+		btn.text = "%s (Lv %d - %s)%s" % [s_name, s_lvl, mode_name, active_mark]
+		
+		var target_id = s_id
+		btn.pressed.connect(func():
+			var am = get_node_or_null("/root/AudioManager")
+			if am: am.play_sfx("click")
+			if gm:
+				gm.load_save_by_id(target_id)
+			show_screen("play_menu")
+			if btn_continue_game: btn_continue_game.visible = true
+		)
+		row.add_child(btn)
+		
+		# Tombol Hapus (X)
+		var del_btn = Button.new()
+		del_btn.custom_minimum_size = Vector2(18, 0)
+		del_btn.text = "X"
+		del_btn.add_theme_font_size_override("font_size", 9)
+		del_btn.add_theme_color_override("font_color", Color(0.8, 0.2, 0.2, 1))
+		del_btn.pressed.connect(func():
+			var am = get_node_or_null("/root/AudioManager")
+			if am: am.play_sfx("click")
+			if gm:
+				gm.delete_save_by_id(target_id)
+			update_load_screen_ui()
+		)
+		row.add_child(del_btn)
+		
+		save_list_container.add_child(row)
 # ====================================================================
 
 func _on_btn_play_pressed() -> void:
 	var am = get_node_or_null("/root/AudioManager")
 	if am: am.play_sfx("click")
-	var gm = get_node_or_null("/root/GameManager")
-	var has_save: bool = gm.has_save if gm else false
 	
-	if btn_continue_game: btn_continue_game.visible = has_save
+	var gm = get_node_or_null("/root/GameManager")
+	var ada_save: bool = (gm != null) and (gm.has_save or not gm.saves_list.is_empty())
+	
+	# Tombol Lanjutkan & Pilih Level hanya muncul jika sudah punya save data
+	if btn_continue_game:
+		btn_continue_game.visible = ada_save
+	if btn_select_level:
+		btn_select_level.visible = ada_save
+	
 	show_screen("play_menu")
 
 func _on_btn_continue_game_pressed() -> void:
@@ -411,7 +502,9 @@ func _on_btn_new_game_pressed() -> void:
 	if am: am.play_sfx("click")
 	show_screen("new_game")
 	if input_save_name:
-		input_save_name.text = "Player"
+		var gm = get_node_or_null("/root/GameManager")
+		var count = (gm.saves_list.size() + 1) if gm else 1
+		input_save_name.text = "Player %d" % count
 		input_save_name.grab_focus()
 
 func _on_btn_select_level_pressed() -> void:
@@ -480,12 +573,23 @@ func _on_btn_main_menu_pressed() -> void:
 	if am:
 		am.play_sfx("click")
 		am.play_bgm("home")
+		
 	is_game_started = false
 	timer_berjalan = false
 	set_hud_visibilitas(false)
+	
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		gm.is_replaying = false
+		
 	var tree := get_tree()
 	if tree:
 		tree.paused = false
+		# Jika sedang di LevelTutorial atau level lain, kembali ke Level 01 sebagai home scene
+		if tree.current_scene and tree.current_scene.scene_file_path != "res://scene/level/Level01.tscn":
+			tree.change_scene_to_file("res://scene/level/Level01.tscn")
+			return
+			
 	show_screen("main")
 
 func _on_btn_result_main_menu_pressed() -> void:
@@ -493,12 +597,22 @@ func _on_btn_result_main_menu_pressed() -> void:
 	if am:
 		am.play_sfx("click")
 		am.play_bgm("home")
+		
 	is_game_started = false
 	timer_berjalan = false
 	set_hud_visibilitas(false)
+	
+	var gm = get_node_or_null("/root/GameManager")
+	if gm:
+		gm.is_replaying = false
+		
 	var tree := get_tree()
 	if tree:
 		tree.paused = false
+		if tree.current_scene and tree.current_scene.scene_file_path != "res://scene/level/Level01.tscn":
+			tree.change_scene_to_file("res://scene/level/Level01.tscn")
+			return
+			
 	show_screen("main")
 
 func mulai_permainan() -> void:
@@ -524,14 +638,17 @@ func _on_btn_settings_pressed() -> void:
 	if am: am.play_sfx("click")
 	show_screen("settings")
 
-func _on_btn_load_progress_pressed() -> void:
-	var am = get_node_or_null("/root/AudioManager")
-	if am: am.play_sfx("click")
-
 func show_screen(screen_name: String) -> void:
+	if screen_name == "play_menu":
+		var gm = get_node_or_null("/root/GameManager")
+		var ada_save: bool = (gm != null) and (gm.has_save or not gm.saves_list.is_empty())
+		if btn_continue_game: btn_continue_game.visible = ada_save
+		if btn_select_level: btn_select_level.visible = ada_save
+
 	if main_menu: main_menu.visible = (screen_name == "main")
 	if play_menu: play_menu.visible = (screen_name == "play_menu")
 	if new_game_screen: new_game_screen.visible = (screen_name == "new_game")
+	if load_game_screen: load_game_screen.visible = (screen_name == "load_game")
 	if level_select_screen: level_select_screen.visible = (screen_name == "level_select")
 	if notes_screen: notes_screen.visible = (screen_name == "notes")
 	if in_game_menu: in_game_menu.visible = (screen_name == "in_game")
@@ -547,10 +664,19 @@ func _atur_fokus_layar(screen_name: String) -> void:
 		"play_menu":
 			if btn_continue_game and btn_continue_game.visible:
 				btn_continue_game.grab_focus()
-			elif btn_new_game:
+			elif btn_new_game and btn_new_game.visible:
 				btn_new_game.grab_focus()
+			elif btn_back_play:
+				btn_back_play.grab_focus()
 		"new_game":
 			if input_save_name: input_save_name.grab_focus()
+		"load_game":
+			if save_list_container and save_list_container.get_child_count() > 0:
+				var first_row = save_list_container.get_child(0)
+				if first_row and first_row.get_child_count() > 0:
+					first_row.get_child(0).grab_focus()
+			elif btn_back_load:
+				btn_back_load.grab_focus()
 		"level_select":
 			var gm = get_node_or_null("/root/GameManager")
 			var unlocked: int = int(gm.unlocked_level) if gm else 1
@@ -575,13 +701,14 @@ func toggle_phone() -> void:
 
 func open_phone() -> void:
 	is_open = true
-	dim_overlay.visible = true
-	phone_container.visible = true
+	if dim_overlay: dim_overlay.visible = true
+	if phone_container: phone_container.visible = true
+	
+	var tree := get_tree()
+	if tree:
+		tree.paused = true
 	
 	if is_game_started:
-		var tree := get_tree()
-		if tree:
-			tree.paused = true
 		show_screen("in_game")
 	else:
 		show_screen("main")
@@ -591,13 +718,12 @@ func open_phone() -> void:
 
 func close_phone() -> void:
 	is_open = false
-	dim_overlay.visible = false
-	phone_container.visible = false
+	if dim_overlay: dim_overlay.visible = false
+	if phone_container: phone_container.visible = false
 	
-	if is_game_started:
-		var tree := get_tree()
-		if tree:
-			tree.paused = false
+	var tree := get_tree()
+	if tree:
+		tree.paused = false
 		
 	var am = get_node_or_null("/root/AudioManager")
 	if am: am.play_sfx("phone_close")
@@ -667,6 +793,7 @@ func _input(event: InputEvent) -> void:
 		if am: am.play_sfx("click")
 		if settings_screen and settings_screen.visible:
 			_on_btn_back_settings_pressed()
+		elif load_game_screen and load_game_screen.visible: show_screen("main")
 		elif new_game_screen and new_game_screen.visible: show_screen("play_menu")
 		elif level_select_screen and level_select_screen.visible: show_screen("play_menu")
 		elif play_menu and play_menu.visible: show_screen("main")

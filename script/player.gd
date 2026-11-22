@@ -14,12 +14,27 @@ const FOOTSTEP_INTERVAL: float = 0.26
 func _ready() -> void:
 	collision_mask = 3
 
+func is_smartphone_open() -> bool:
+	if not get_tree() or not get_tree().current_scene:
+		return false
+	var phone = get_tree().current_scene.find_child("Smartphone", true, false)
+	if phone and "is_open" in phone and phone.is_open:
+		return true
+	return false
+
 func _physics_process(delta: float) -> void:
+	# KUNCI PERGERAKAN: Jika HP sedang terbuka atau di-pause, pemain tidak boleh gerak/lompat
+	if is_smartphone_open() or (get_tree() and get_tree().paused):
+		velocity.x = 0
+		update_animation(0)
+		move_and_slide()
+		return
+
 	# 1. Gravitasi
 	if not is_on_floor():
 		velocity.y += gravity * delta
 
-	# 2. Lompat (Suara desingan angin lompat / air swish lincah)
+	# 2. Lompat
 	if Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
 		var am = get_node_or_null("/root/AudioManager")
@@ -35,7 +50,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 
-	# 4. Langkah Kaki (Langsung berbunyi di hentakan pertama)
+	# 4. Langkah Kaki
 	if is_on_floor() and direction != 0:
 		footstep_timer -= delta
 		if footstep_timer <= 0.0:
@@ -46,7 +61,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		footstep_timer = 0.0
 
-	# 5. Mendarat Tubuh Manusia (Body Thud empuk)
+	# 5. Mendarat
 	if not was_on_floor and is_on_floor():
 		var am = get_node_or_null("/root/AudioManager")
 		if am: am.play_sfx("land", 4.0, 1.0)

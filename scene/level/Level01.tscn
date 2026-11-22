@@ -1,4 +1,4 @@
-[gd_scene format=4]
+[gd_scene format=3 uid="uid://bjmb3v0kqwjm2"]
 
 [ext_resource type="PackedScene" path="res://scene/level/BaseLevel.tscn" id="1_base"]
 [ext_resource type="Script" uid="uid://cxe57ammajut3" path="res://script/interactive_item.gd" id="2_item"]
@@ -7,21 +7,24 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stool"]
 size = Vector2(14, 4)
 
-[node name="Level01" instance=ExtResource("1_base")]
+[node name="Level01" unique_id=1527333291 instance=ExtResource("1_base")]
 
 [node name="Room2Spawner" parent="." index="3"]
 level_override = 1
 
-[node name="Stool_Room1" type="AnimatableBody2D" parent="."]
+[node name="Player" parent="." index="4" unique_id=1780209370]
+position = Vector2(-100, -17)
+
+[node name="Stool_Room1" type="AnimatableBody2D" parent="." index="8" unique_id=760612487]
 position = Vector2(-146, -12)
 input_pickable = true
 script = ExtResource("2_item")
 
-[node name="Sprite2D" type="Sprite2D" parent="Stool_Room1"]
+[node name="Sprite2D" type="Sprite2D" parent="Stool_Room1" index="0" unique_id=2109685396]
 scale = Vector2(1.5227274, 1.2794117)
 texture = ExtResource("3_chair")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Stool_Room1"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stool_Room1" index="1" unique_id=748641221]
 position = Vector2(0, 2)
 shape = SubResource("RectangleShape2D_stool")
 one_way_collision = true

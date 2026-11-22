@@ -20,6 +20,30 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rvdje"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ebmt1"]
+bg_color = Color(0.6, 0.6, 0.6, 0.007843138)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4fgoc"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mvcbh"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rvdje"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 border_width_left = 1
@@ -459,25 +483,30 @@ offset_bottom = 67.0
 [node name="Label" type="Label" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1515209964]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 14
 text = "Nama Save:"
 
 [node name="InputSaveName" type="LineEdit" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1217486438]
 layout_mode = 2
-text = "Player 1"
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_ebmt1")
 placeholder_text = "Player 1"
 
 [node name="Label2" type="Label" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=178250900]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 14
 text = "Pilih Mode:"
 
 [node name="OptionMode" type="OptionButton" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1749947489]
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_4fgoc")
 
 [node name="BtnStartNewGame" type="Button" parent="PhoneContainer/PhoneFrame/NewGameScreen/FormContainer" unique_id=1503052246]
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_mvcbh")
 text = "Mulai Main"
 
 [node name="LevelSelectScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=1550897800]
@@ -712,6 +741,86 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_bxm7l")
 text = "Layar Penuh: OFF"
 
 [node name="BtnBackSettings" type="Button" parent="PhoneContainer/PhoneFrame/SettingsScreen" unique_id=314159275]
+layout_mode = 0
+offset_left = -68.0
+offset_top = 121.0
+offset_right = 21.0
+offset_bottom = 152.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jmhxe")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_vp8hl")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_aa0wt")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_oob2m")
+text = "← Kembali"
+
+[node name="LoadGameScreen" type="Control" parent="PhoneContainer/PhoneFrame" unique_id=451928001]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LoadBG" type="TextureRect" parent="PhoneContainer/PhoneFrame/LoadGameScreen" unique_id=451928002]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -125.0
+offset_right = 75.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_45wmf")
+
+[node name="LabelTitle" type="Label" parent="PhoneContainer/PhoneFrame/LoadGameScreen" unique_id=451928003]
+layout_mode = 0
+offset_left = -34.0
+offset_top = -101.0
+offset_right = 74.0
+offset_bottom = -78.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "MUAT GAME"
+
+[node name="SaveScroll" type="ScrollContainer" parent="PhoneContainer/PhoneFrame/LoadGameScreen" unique_id=451928004]
+layout_mode = 0
+offset_left = -40.0
+offset_top = -65.0
+offset_right = 80.0
+offset_bottom = 110.0
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="SaveListContainer" type="VBoxContainer" parent="PhoneContainer/PhoneFrame/LoadGameScreen/SaveScroll" unique_id=451928005]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="LabelNoSave" type="Label" parent="PhoneContainer/PhoneFrame/LoadGameScreen" unique_id=451928006]
+layout_mode = 0
+offset_left = -40.0
+offset_top = -10.0
+offset_right = 80.0
+offset_bottom = 13.0
+theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 9
+text = "Belum ada save data"
+horizontal_alignment = 1
+
+[node name="BtnBackLoad" type="Button" parent="PhoneContainer/PhoneFrame/LoadGameScreen" unique_id=451928014]
 layout_mode = 0
 offset_left = -68.0
 offset_top = 121.0
