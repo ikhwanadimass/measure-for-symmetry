@@ -1,7 +1,14 @@
-# Godot 4+ specific ignores
-.godot/
-/android/
+# # Godot 4+ specific ignores
+# .godot/
+# /android/
 
-# Local AI agent tooling & scratch files
-.agents/
-skills-lock.json
+# # Local AI agent tooling & scratch files
+# .agents/
+# skills-lock.json
+
+# abaikan semua
+*
+
+# kecuali yang ini
+!README.md
+!Measure For Symmetry.zip
